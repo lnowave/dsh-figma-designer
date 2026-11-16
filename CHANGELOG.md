@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0
+
+- 组件内部文字 overrides 提升为 React props（如 `label`）。
+- 同一 variant 的不同 label 合并为一个组件，不再拆快照。
+- VECTOR 节点异步导出 SVG，HTML/JSX 渲染为内联 SVG 图片。
+- 隐藏子节点不再进入导出结果。
+- 新增 `docs/V0.7.0-EXPORT-COMPLETE.md` 与测试。
+
 ## 0.6.1
 
 - 同一组件集的 variant 映射为 React props，生成 `<Button size="Large" state="Default" />`。

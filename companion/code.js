@@ -15,7 +15,7 @@
  * The ops DSL and result shapes are defined in docs/V0.1-SPEC.md sections 2-3.
  */
 
-const PLUGIN_VERSION = '0.6.1'
+const PLUGIN_VERSION = '0.7.0'
 const DEFAULT_FONT = { family: 'Inter', style: 'Regular' }
 const MAX_OPERATION_CACHE = 50
 const EXPORT_FORMATS = ['PNG', 'SVG', 'PDF']
@@ -608,6 +608,7 @@ async function treeCommand(args) {
   }
 
   const mainComponents = await collectInstanceMainComponents(roots)
+  const vectorSvgs = await collectVectorSvgs(roots, warnings)
   const state = { count: 0, truncated: false, maxNodes: maxNodes }
   const nodes = []
   for (const root of roots) {
@@ -615,7 +616,7 @@ async function treeCommand(args) {
       state.truncated = true
       break
     }
-    nodes.push(serializeExportNode(root, state, depth, warnings, mainComponents))
+    nodes.push(serializeExportNode(root, state, depth, warnings, mainComponents, vectorSvgs))
   }
 
   return {
@@ -628,6 +629,24 @@ async function treeCommand(args) {
     selection: selectionIds,
     warnings: uniqueStrings(warnings).slice(0, 20),
   }
+}
+
+async function collectVectorSvgs(roots, warnings) {
+  const map = new Map()
+  async function visit(node) {
+    if (!node || typeof node !== 'object' || node.visible === false) return
+    if (node.type === 'VECTOR' && typeof node.exportAsync === 'function') {
+      try {
+        const bytes = await node.exportAsync({ format: 'SVG' })
+        if (bytes && bytes.length > 0) map.set(node.id, encodeBase64(bytes))
+      } catch (error) {
+        warnings.push('VECTOR 图标「' + (node.name || node.id) + '」SVG 导出失败：' + errorMessage(error))
+      }
+    }
+    for (const child of Array.isArray(node.children) ? node.children : []) await visit(child)
+  }
+  for (const root of Array.isArray(roots) ? roots : []) await visit(root)
+  return map
 }
 
 async function collectInstanceMainComponents(roots) {
@@ -658,7 +677,7 @@ async function collectInstanceMainComponents(roots) {
   return map
 }
 
-function serializeExportNode(node, state, depthLeft, warnings, mainComponents) {
+function serializeExportNode(node, state, depthLeft, warnings, mainComponents, vectorSvgs) {
   state.count += 1
   const out = {
     id: node.id,
@@ -692,6 +711,10 @@ function serializeExportNode(node, state, depthLeft, warnings, mainComponents) {
       if (typeof node.layoutWrap === 'string') layout.wrap = node.layoutWrap
       out.layout = layout
     }
+  }
+
+  if (node.type === 'VECTOR' && vectorSvgs && typeof vectorSvgs.get(node.id) === 'string') {
+    out.svgBase64 = vectorSvgs.get(node.id)
   }
 
   if (node.type === 'TEXT') {
@@ -743,7 +766,7 @@ function serializeExportNode(node, state, depthLeft, warnings, mainComponents) {
           state.truncated = true
           break
         }
-        children.push(serializeExportNode(child, state, depthLeft - 1, warnings, mainComponents))
+        children.push(serializeExportNode(child, state, depthLeft - 1, warnings, mainComponents, vectorSvgs))
       }
       if (children.length > 0) out.children = children
     }

@@ -24,7 +24,7 @@ description: 用自然语言读取、创建、修改、导出 Figma 设计（选
    - `figma_style apply` 默认链接 style id（内部先 loadAllPagesAsync）；传 `link:false` 可只按值写入。
    - 样式应用前先 `figma_read` 确认目标节点，避免覆盖用户手动改过的 fill。
 7. **组件集**：需要变体时用 `figma_component_set`（基于基础组件克隆 + combineAsVariants）；之后 `figma_instantiate` 用 `variant:{Size:'Large'}` 选变体。
-8. **导出**：用户要前端代码时用 `figma_export {format:'html'|'jsx'|'svg'|'json'|'tokens', target?, nodeIds?, outDir?, tokenAware?}`；返回文件绝对路径，直接告诉用户路径。HTML/JSX 处理 Auto Layout→flex；HTML/JSX 默认 token-aware；JSX 默认 component-aware（`components.jsx`，`componentAware:false` 关闭）；同组件集 variant 会映射为 props（如 `<Button size="Large" state="Default" />`）；VECTOR 图标用 `svg` 格式；渐变/图片填充会进 warnings。
+8. **导出**：用户要前端代码时用 `figma_export {format:'html'|'jsx'|'svg'|'json'|'tokens', target?, nodeIds?, outDir?, tokenAware?}`；返回文件绝对路径，直接告诉用户路径。HTML/JSX 处理 Auto Layout→flex；HTML/JSX 默认 token-aware；JSX 默认 component-aware（`components.jsx`，`componentAware:false` 关闭）；同组件集 variant 会映射为 props（如 `<Button size="Large" state="Default" />`），组件内文字 overrides 会生成 `label` 等 props；VECTOR 图标会导出为内联 SVG；VECTOR 图标用 `svg` 格式；渐变/图片填充会进 warnings。
 
 ## 坐标与层级
 

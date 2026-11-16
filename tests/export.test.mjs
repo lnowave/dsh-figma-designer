@@ -207,13 +207,13 @@ test('component-aware JSX extracts repeated component instances and reuses ident
   }
   const rendered = toJSX(componentTree, { componentAware: true })
   assert.equal(rendered.componentAware, true)
-  assert.equal(rendered.componentCount, 2)
+  assert.equal(rendered.componentCount, 1)
   assert.ok(rendered.files['components.jsx'])
-  assert.match(rendered.files['App.jsx'], /import \{ Button, Button2 \} from '\.\/components\.jsx'/)
-  assert.match(rendered.files['App.jsx'], /<Button \/>/)
-  assert.match(rendered.files['App.jsx'], /<Button2 \/>/)
-  assert.match(rendered.files['components.jsx'], /export function Button/)
-  assert.match(rendered.files['components.jsx'], /export function Button2/)
+  assert.match(rendered.files['App.jsx'], /import \{ Button \} from '\.\/components\.jsx'/)
+  assert.match(rendered.files['App.jsx'], /<Button label="Save" \/>/)
+  assert.match(rendered.files['App.jsx'], /<Button label="Cancel" \/>/)
+  assert.match(rendered.files['components.jsx'], /export function Button\(\{ label = "Save" \} = \{\}\)/)
+  assert.match(rendered.files['components.jsx'], /\{label\}/)
   const expanded = toJSX(componentTree, { componentAware: false })
   assert.equal(expanded.componentAware, false)
   assert.equal(expanded.files['components.jsx'], undefined)
@@ -246,12 +246,30 @@ test('variant instances of one component set become React props and a wrapper co
   const rendered = toJSX(variantTree, { componentAware: true })
   assert.equal(rendered.componentCount, 2)
   assert.match(rendered.files['App.jsx'], /import \{ Button \} from '\.\/components\.jsx'/)
-  assert.match(rendered.files['App.jsx'], /<Button size="Large" state="Default" \/>/)
-  assert.match(rendered.files['App.jsx'], /<Button size="Small" state="Default" \/>/)
-  assert.match(rendered.files['components.jsx'], /export function Button\(\{ size = "Large", state = "Default" \}\)/)
+  assert.match(rendered.files['App.jsx'], /<Button size="Large" state="Default" label="Save" \/>/)
+  assert.match(rendered.files['App.jsx'], /<Button size="Small" state="Default" label="Save" \/>/)
+  assert.match(rendered.files['components.jsx'], /export function Button\(props\) \{/)
   assert.match(rendered.files['components.jsx'], /export function SizeLargeStateDefault/)
   assert.match(rendered.files['components.jsx'], /export function SizeSmallStateDefault/)
-  assert.match(rendered.files['components.jsx'], /if \(size === "Large" && state === "Default"\) return <SizeLargeStateDefault \/>/)
+  assert.match(rendered.files['components.jsx'], /if \(size === "Large" && state === "Default"\) return <SizeLargeStateDefault \{\.\.\.props\} \/>/)
+})
+
+test('VECTOR nodes with svgBase64 render inline SVG images instead of placeholders', () => {
+  const svgBase64 = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z"/></svg>').toString('base64')
+  const vectorTree = {
+    file: 'Icons', page: { id: '0:1', name: 'Page 1' }, warnings: [], stats: { count: 1, truncated: false },
+    nodes: [{
+      id: '1:1', name: 'Icon', type: 'VECTOR', visible: true, opacity: 1, x: 0, y: 0, width: 24, height: 24,
+      fills: null, svgBase64,
+    }],
+  }
+  const html = toHTML(vectorTree).files['index.html']
+  assert.match(html, /data:image\/svg\+xml;base64,/)
+  assert.match(html, /class="figma-svg"/)
+  assert.doesNotMatch(html, /暂不支持/)
+  const jsx = toJSX(vectorTree, { componentAware: false }).files
+  assert.match(jsx['App.jsx'], /data:image\/svg\+xml;base64,/)
+  assert.match(jsx['App.jsx'], /className="figma-svg"/)
 })
 
 test('toTokens emits W3C-ish tokens.json and CSS variables from Variables/styles', () => {
