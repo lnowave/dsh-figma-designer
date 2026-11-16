@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0
+
+- 新增 `figma_reference`：读取本地参考图，返回尺寸/预览，可选在 Figma 创建 Reference 图片框。
+- 新增 `figma_asset`：把本地 PNG/JPEG/GIF 放进 Figma，或替换已有节点 image fill。
+- 新增本地图片尺寸嗅探（PNG/JPEG/GIF）与对应测试。
+- 文档：`docs/V0.8.0-REFERENCE-ASSETS.md`。
+
 ## 0.7.0
 
 - 组件内部文字 overrides 提升为 React props（如 `label`）。

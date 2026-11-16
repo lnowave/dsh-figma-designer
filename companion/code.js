@@ -15,7 +15,7 @@
  * The ops DSL and result shapes are defined in docs/V0.1-SPEC.md sections 2-3.
  */
 
-const PLUGIN_VERSION = '0.7.0'
+const PLUGIN_VERSION = '0.8.0'
 const DEFAULT_FONT = { family: 'Inter', style: 'Regular' }
 const MAX_OPERATION_CACHE = 50
 const EXPORT_FORMATS = ['PNG', 'SVG', 'PDF']
@@ -128,6 +128,8 @@ async function handleCommand(command, args) {
       return applyCommand(args)
     case 'export':
       return exportCommand(args)
+    case 'image':
+      return imageCommand(args)
     case 'tree':
       return treeCommand(args)
     case 'library':
@@ -529,6 +531,68 @@ async function screenshotCommand(args) {
       width: width,
       height: height,
     },
+  }
+}
+
+async function imageCommand(args) {
+  if (!args || typeof args.data !== 'string' || args.data.length === 0) throw invalidOp('image 需要 base64 图片数据')
+  if (typeof figma.base64Decode !== 'function') throw pluginError('unsupported', '当前 Figma 环境不支持 base64Decode')
+  let bytes
+  try {
+    bytes = figma.base64Decode(args.data)
+  } catch (error) {
+    throw pluginError('invalid-image', '图片 base64 解码失败：' + errorMessage(error))
+  }
+  if (!bytes || bytes.length === 0) throw pluginError('invalid-image', '图片数据为空')
+  let image
+  try {
+    image = figma.createImage(bytes)
+  } catch (error) {
+    throw pluginError('invalid-image', 'Figma 不接受这张图片：' + errorMessage(error))
+  }
+  let width = typeof args.width === 'number' && args.width > 0 ? args.width : null
+  let height = typeof args.height === 'number' && args.height > 0 ? args.height : null
+  if ((!width || !height) && typeof image.getSizeAsync === 'function') {
+    try {
+      const size = await image.getSizeAsync()
+      width = width || (size && size.width) || null
+      height = height || (size && size.height) || null
+    } catch (_ignored) {
+      /* fall through to defaults */
+    }
+  }
+  width = width || 800
+  height = height || 600
+  const fit = args.fit === 'FILL' ? 'FILL' : 'FIT'
+  const paint = { type: 'IMAGE', imageHash: image.hash, scaleMode: fit }
+  if (typeof args.nodeId === 'string' && args.nodeId.length > 0) {
+    const node = await figma.getNodeByIdAsync(args.nodeId)
+    if (!node) throw pluginError('node-not-found', '找不到节点 ' + args.nodeId)
+    if (!hasProperty(node, 'fills')) throw pluginError('unsupported', '节点 ' + node.type + ' 不支持图片填充')
+    node.fills = [paint]
+    return {
+      ok: true,
+      mode: 'fill',
+      node: { id: node.id, name: node.name, type: node.type, width: node.width, height: node.height },
+      image: { width: width, height: height, hash: image.hash },
+    }
+  }
+  const node = figma.createFrame()
+  node.name = typeof args.name === 'string' && args.name.length > 0 ? args.name : 'Image asset'
+  node.resize(Math.max(1, Math.round(width)), Math.max(1, Math.round(height)))
+  node.fills = [paint]
+  node.x = Number.isFinite(args.x) ? args.x : 0
+  node.y = Number.isFinite(args.y) ? args.y : 0
+  if (typeof args.parentId === 'string' && args.parentId.length > 0) {
+    const parent = await figma.getNodeByIdAsync(args.parentId)
+    if (!parent) throw pluginError('node-not-found', '找不到父节点 ' + args.parentId)
+    parent.appendChild(node)
+  }
+  return {
+    ok: true,
+    mode: args.mode === 'reference' ? 'reference' : 'asset',
+    node: { id: node.id, name: node.name, type: node.type, width: node.width, height: node.height },
+    image: { width: width, height: height, hash: image.hash },
   }
 }
 

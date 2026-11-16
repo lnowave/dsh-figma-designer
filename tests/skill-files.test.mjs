@@ -23,7 +23,7 @@ test('both bundled skills have frontmatter and required references', () => {
     assert.match(raw, /^description:\s+\S/m, `${name} needs a description`)
   }
   const designDir = join(ROOT, 'figma-design', 'references')
-  for (const file of ['design-direction.md', 'visual-language.md', 'tokens.md', 'figma-workflow.md', 'reviewer.md', 'audit.md', 'compare.md', 'design-doc-template.md']) {
+  for (const file of ['design-direction.md', 'visual-language.md', 'tokens.md', 'figma-workflow.md', 'reviewer.md', 'audit.md', 'compare.md', 'reference-assets.md', 'design-doc-template.md']) {
     assert.ok(existsSync(join(designDir, file)), `figma-design/references/${file} missing`)
   }
 })

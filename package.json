@@ -1,6 +1,6 @@
 {
   "name": "dsh-figma-designer",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Natural-language Figma design editing and design-quality workflow for DeepSeek Harness: typed canvas operations, screenshots, design-system tools, and an independent review loop.",
   "icon": "./icon.svg",
   "type": "module",

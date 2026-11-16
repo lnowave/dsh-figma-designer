@@ -7,7 +7,7 @@
  */
 
 import assert from 'node:assert/strict'
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
@@ -233,6 +233,56 @@ test('compare screenshots candidates and writes a self-contained HTML page', asy
     await bridge.close()
     rmSync(homeDir, { recursive: true, force: true })
     rmSync(outDir, { recursive: true, force: true })
+  }
+})
+
+test('reference imports a local image for analysis and can place a reference board', async () => {
+  const { bridge, homeDir } = await start()
+  const imageDir = mkdtempSync(join(tmpdir(), 'figma-reference-'))
+  const pngPath = join(imageDir, 'reference.png')
+  writeFileSync(pngPath, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+2k7nWQAAAABJRU5ErkJggg==', 'base64'))
+  try {
+    const plugin = await attachPlugin(bridge, (command) => {
+      if (command === 'image') return { ok: true, value: { ok: true, mode: 'reference', node: { id: '1:9', name: 'Reference / reference', type: 'FRAME', width: 1, height: 1 }, image: { width: 1, height: 1, hash: 'h' } } }
+      return { ok: false, error: { code: 'unsupported', message: `unexpected ${command}` } }
+    })
+    const { call } = makeTools(bridge)
+    const preview = await call('figma_reference', { path: pngPath })
+    assert.equal(preview.ok, true)
+    assert.equal(preview.width, 1)
+    assert.equal(preview.height, 1)
+    assert.ok(preview.preview && preview.preview.attachment)
+    const placed = await call('figma_reference', { path: pngPath, place: true, x: 1200, y: 0 })
+    assert.equal(placed.ok, true)
+    assert.equal(placed.placed.id, '1:9')
+    assert.deepEqual(plugin.commands, ['image'])
+  } finally {
+    await bridge.close()
+    rmSync(homeDir, { recursive: true, force: true })
+    rmSync(imageDir, { recursive: true, force: true })
+  }
+})
+
+test('asset places a local image as a new Figma image frame', async () => {
+  const { bridge, homeDir } = await start()
+  const imageDir = mkdtempSync(join(tmpdir(), 'figma-asset-'))
+  const pngPath = join(imageDir, 'hero.png')
+  writeFileSync(pngPath, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+2k7nWQAAAABJRU5ErkJggg==', 'base64'))
+  try {
+    const plugin = await attachPlugin(bridge, (command) => {
+      if (command === 'image') return { ok: true, value: { ok: true, mode: 'asset', node: { id: '1:10', name: 'hero.png', type: 'FRAME', width: 1, height: 1 }, image: { width: 1, height: 1, hash: 'h' } } }
+      return { ok: false, error: { code: 'unsupported', message: `unexpected ${command}` } }
+    })
+    const { call } = makeTools(bridge)
+    const result = await call('figma_asset', { path: pngPath, name: 'Hero image', x: 0, y: 0 })
+    assert.equal(result.ok, true)
+    assert.equal(result.node.id, '1:10')
+    assert.ok(result.preview && result.preview.attachment)
+    assert.deepEqual(plugin.commands, ['image'])
+  } finally {
+    await bridge.close()
+    rmSync(homeDir, { recursive: true, force: true })
+    rmSync(imageDir, { recursive: true, force: true })
   }
 })
 

@@ -87,6 +87,7 @@ description: 让 Figma 设计达到可交付质量：先定方向与约束，再
 | Figma 工具操作顺序与限制 | `references/figma-workflow.md` |
 | 客观质量审计 | `references/audit.md` |
 | 多方向截图对比 | `references/compare.md` |
+| 参考图与素材管线 | `references/reference-assets.md` |
 | 独立评审标准 | `references/reviewer.md` |
 
 ## 硬规则
