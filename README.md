@@ -2,7 +2,7 @@
 
 用自然语言在 **Figma** 里读取、创建、修改设计，并导出前端代码。作为 [DeepSeek Harness](https://github.com/deepseek-ai) 的原生插件运行。
 
-> 当前版本 **v0.4.0**，测试环境：DSH `0.2.2-rc.1` + Figma Desktop。
+> 当前版本 **v0.4.1**，测试环境：DSH `0.2.2-rc.1` + Figma Desktop。
 
 ## 功能
 
@@ -14,6 +14,7 @@
 - **本地免费**：Figma 开发插件 + 本机 loopback 桥，不走官方 MCP、不消耗额度。
 - **写入安全**：配对 token、仅本机监听、`uncertain-write` 屏障。
 - **设计质量（v0.4）**：新增 `figma-design` skill，强制方向卡 → 灰度 → 视觉 → 真实截图 → 独立评审（1–10 分），避免“能画但做得平庸”。
+- **质量审计（v0.4.1）**：`figma_audit` 只读检查对比度、字号/行高、占位文案、点击区、间距网格、颜色数量、token 匹配率、裁剪等，返回 0–100 分和 nodeId 问题清单。
 
 ## 环境要求
 
@@ -34,7 +35,7 @@
    或固定版本：
 
    ```text
-   github:lnowave/dsh-figma-designer#v0.4.0
+   github:lnowave/dsh-figma-designer#v0.4.1
    ```
 
    私有仓库需要那台电脑的 Git 凭据。
@@ -60,7 +61,7 @@
 
 升级 DSH 插件后重新生成配对会原地更新伴生插件目录，只需关闭并重跑 Figma 插件，**不用重新导入**。
 
-## 设计质量（v0.4.0）
+## 设计质量（v0.4）
 
 插件现在包含两个 skill：
 
@@ -76,6 +77,16 @@
 5. 派独立子 Agent 按评审手册打 1–10 分，按问题清单修正。
 
 参考：`skills/figma-design/references/`（方向、视觉语言、tokens、Figma 工作流、评审手册）。
+
+## 质量审计（v0.4.1）
+
+```text
+figma_audit({ target: 'selection' })
+figma_audit({ target: 'page', maxNodes: 800 })
+figma_audit({ target: 'node', nodeIds: ['11:606'] })
+```
+
+只读检查：文字对比度、字号/行高、占位文案、控件点击区、间距网格、颜色数量、token 匹配率、裁剪、组件使用。返回 `score`（0–100）、`grade` 和带 `nodeId`/修复建议的 `issues`；不修改画布。审计是独立评审前的客观检查，不替代 1–10 分视觉评审。
 
 ## 工具
 
@@ -93,6 +104,7 @@
 | `figma_style` | 应用/创建 Paint/Text/Effect 样式 |
 | `figma_variable` | list/create/set/bind Variables |
 | `figma_export` | 导出 html / jsx / svg / json / tokens |
+| `figma_audit` | 只读质量审计：对比度/字号/行高/占位/点击区/间距/token/裁剪，返回分数和 nodeId 问题清单 |
 
 ## 导出
 
@@ -157,9 +169,9 @@ node build-client.mjs
 node --test tests/*.test.mjs
 ```
 
-目录：`docs/V0.1-SPEC.md`（ops/协议契约）、`docs/V0.2-EXPORT.md`、`docs/V0.3-DESIGN-SYSTEM.md`、`docs/V0.3.2-COMPANION-UI.md`、`docs/V0.4.0-DESIGN-QUALITY.md`。
+目录：`docs/V0.1-SPEC.md`（ops/协议契约）、`docs/V0.2-EXPORT.md`、`docs/V0.3-DESIGN-SYSTEM.md`、`docs/V0.3.2-COMPANION-UI.md`、`docs/V0.4.0-DESIGN-QUALITY.md`、`docs/V0.4.1-AUDIT.md`。
 
-发布/升级时在 GitHub 打 tag（如 `v0.4.0`），安装时可用 `github:lnowave/dsh-figma-designer#v0.4.0`。
+发布/升级时在 GitHub 打 tag（如 `v0.4.1`），安装时可用 `github:lnowave/dsh-figma-designer#v0.4.1`。
 
 ## License
 

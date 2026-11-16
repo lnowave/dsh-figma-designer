@@ -53,6 +53,7 @@ description: 让 Figma 设计达到可交付质量：先定方向与约束，再
 
 ### 5. 真实画面证据
 
+- 用 `figma_audit` 先跑一遍客观检查（对比度/字号/行高/占位/点击区/间距/token/裁剪），按 `nodeId` 修掉 error，再处理高影响 warn。详见 `references/audit.md`。
 - 用 `figma_screenshot` 在目标视口看当前屏；不要只看代码或缩略图。
 - 至少检查：目标视口 100%、关键区域 200%、首屏缩到 480px 宽的三秒测试。
 - 有文本节点时检查：字号、行高、中文断行、截断/溢出、长内容；有状态/交互时检查操作后状态。
@@ -84,6 +85,7 @@ description: 让 Figma 设计达到可交付质量：先定方向与约束，再
 | 层级、字体、中文、色彩、控件 | `references/visual-language.md` |
 | 字号/间距/圆角/色彩 token 配方 | `references/tokens.md` |
 | Figma 工具操作顺序与限制 | `references/figma-workflow.md` |
+| 客观质量审计 | `references/audit.md` |
 | 独立评审标准 | `references/reviewer.md` |
 
 ## 硬规则

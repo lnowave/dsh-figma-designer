@@ -152,6 +152,45 @@ test('read dispatches to the plugin and returns its tree', async () => {
   }
 })
 
+test('audit reads the tree and library, then returns a score without writing', async () => {
+  const { bridge, homeDir } = await start()
+  try {
+    const auditTreePayload = {
+      ok: true,
+      file: 'Fake File',
+      page: { id: '0:1', name: 'Page 1' },
+      target: 'selection',
+      nodes: [
+        {
+          id: '1:2', name: 'Frame', type: 'FRAME', visible: true, opacity: 1, x: 0, y: 0, width: 390, height: 844,
+          fills: [{ type: 'SOLID', color: '#0B1020', opacity: 1 }],
+          children: [
+            { id: '1:3', name: 'Heading', type: 'TEXT', visible: true, opacity: 1, x: 0, y: 0, width: 300, height: 40, fills: [{ type: 'SOLID', color: '#F8FAFC', opacity: 1 }], text: { characters: 'Hello', font: { family: 'Inter', style: 'Bold' }, fontSize: 32, lineHeight: { unit: 'PIXELS', value: 38 }, textAutoResize: 'NONE' } },
+          ],
+        },
+      ],
+      stats: { truncated: false },
+      warnings: [],
+    }
+    const plugin = await attachPlugin(bridge, (command) => {
+      if (command === 'tree') return auditTreePayload
+      if (command === 'library') return { ok: true, file: 'Fake File', page: { id: '0:1', name: 'Page 1' }, components: [], componentSets: [], styles: { paint: [], text: [], effect: [], grid: [] }, variables: [], variableCollections: [], stats: {} }
+      return { ok: false, error: { code: 'unsupported', message: `unexpected ${command}` } }
+    })
+    const { call } = makeTools(bridge)
+    const result = await call('figma_audit', { target: 'selection' })
+    assert.equal(result.ok, true)
+    assert.equal(typeof result.score, 'number')
+    assert.ok(Array.isArray(result.issues))
+    assert.ok(plugin.commands.includes('tree'))
+    assert.ok(plugin.commands.includes('library'))
+    assert.ok(!plugin.commands.includes('apply'))
+  } finally {
+    await bridge.close()
+    rmSync(homeDir, { recursive: true, force: true })
+  }
+})
+
 test('invalid ops are rejected locally without touching Figma', async () => {
   const { bridge, homeDir } = await start()
   try {

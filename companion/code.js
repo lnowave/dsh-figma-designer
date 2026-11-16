@@ -15,7 +15,7 @@
  * The ops DSL and result shapes are defined in docs/V0.1-SPEC.md sections 2-3.
  */
 
-const PLUGIN_VERSION = '0.4.0'
+const PLUGIN_VERSION = '0.4.1'
 const DEFAULT_FONT = { family: 'Inter', style: 'Regular' }
 const MAX_OPERATION_CACHE = 50
 const EXPORT_FORMATS = ['PNG', 'SVG', 'PDF']
@@ -3011,8 +3011,7 @@ function applyLayout(node, layout) {
   if (layout.counterAxisAlign !== undefined && hasProperty(node, 'counterAxisAlignItems')) {
     node.counterAxisAlignItems = layout.counterAxisAlign
   }
-  if (layout.wrap !== undefined && hasProperty(node, 'layoutWrap')) node.layoutWrap = layout.wrap
-}
+  if (layout.wrap !== undefined && hasProperty(node, 'layoutWrap')) node.layoutWrap = layout.wrap}
 
 function readFont(node) {
   const font = node && node.fontName
