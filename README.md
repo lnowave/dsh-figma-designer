@@ -2,7 +2,7 @@
 
 用自然语言在 **Figma** 里读取、创建、修改设计，并导出前端代码。作为 [DeepSeek Harness](https://github.com/deepseek-ai) 的原生插件运行。
 
-> 当前版本 **v0.3.2**，测试环境：DSH `0.2.2-rc.1` + Figma Desktop。
+> 当前版本 **v0.4.0**，测试环境：DSH `0.2.2-rc.1` + Figma Desktop。
 
 ## 功能
 
@@ -13,6 +13,7 @@
 - **前端代码导出**：HTML、React JSX + CSS、原生 SVG、节点 JSON、设计 tokens，自动处理 Auto Layout → flexbox。
 - **本地免费**：Figma 开发插件 + 本机 loopback 桥，不走官方 MCP、不消耗额度。
 - **写入安全**：配对 token、仅本机监听、`uncertain-write` 屏障。
+- **设计质量（v0.4）**：新增 `figma-design` skill，强制方向卡 → 灰度 → 视觉 → 真实截图 → 独立评审（1–10 分），避免“能画但做得平庸”。
 
 ## 环境要求
 
@@ -33,7 +34,7 @@
    或固定版本：
 
    ```text
-   github:lnowave/dsh-figma-designer#v0.3.2
+   github:lnowave/dsh-figma-designer#v0.4.0
    ```
 
    私有仓库需要那台电脑的 Git 凭据。
@@ -58,6 +59,23 @@
 5. 回到 DSH 调用 `figma_status`，看到「已连接」即可。
 
 升级 DSH 插件后重新生成配对会原地更新伴生插件目录，只需关闭并重跑 Figma 插件，**不用重新导入**。
+
+## 设计质量（v0.4.0）
+
+插件现在包含两个 skill：
+
+- `figma-designer`：操作层，读取/创建/修改/导出 Figma；
+- `figma-design`：判断层，负责设计方向、视觉语言、设计系统、真实截图验收和独立评审。
+
+新建页面、整体改版、探索方向或评审视觉质量时，Agent 会按 `figma-design` 的流程：
+
+1. 写产品事实与方向卡（`DESIGN.md`）：北极星、主角/主动作、调性、字体、色彩、间距、记忆点；
+2. 先做灰度结构，再做视觉；
+3. 复用现有组件/变量/样式，不在每个节点硬编码；
+4. 用 `figma_screenshot` 在目标视口、480px 缩略图和 200% 局部检查；
+5. 派独立子 Agent 按评审手册打 1–10 分，按问题清单修正。
+
+参考：`skills/figma-design/references/`（方向、视觉语言、tokens、Figma 工作流、评审手册）。
 
 ## 工具
 
@@ -139,9 +157,9 @@ node build-client.mjs
 node --test tests/*.test.mjs
 ```
 
-目录：`docs/V0.1-SPEC.md`（ops/协议契约）、`docs/V0.2-EXPORT.md`、`docs/V0.3-DESIGN-SYSTEM.md`、`docs/V0.3.2-COMPANION-UI.md`。
+目录：`docs/V0.1-SPEC.md`（ops/协议契约）、`docs/V0.2-EXPORT.md`、`docs/V0.3-DESIGN-SYSTEM.md`、`docs/V0.3.2-COMPANION-UI.md`、`docs/V0.4.0-DESIGN-QUALITY.md`。
 
-发布/升级时在 GitHub 打 tag（如 `v0.3.2`），安装时可用 `github:lnowave/dsh-figma-designer#v0.3.2`。
+发布/升级时在 GitHub 打 tag（如 `v0.4.0`），安装时可用 `github:lnowave/dsh-figma-designer#v0.4.0`。
 
 ## License
 

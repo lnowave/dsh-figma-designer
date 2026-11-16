@@ -6,6 +6,8 @@ description: 用自然语言读取、创建、修改、导出 Figma 设计（选
 
 当用户想**看/改 Figma 里的设计**时使用本技能：读取选区或页面结构、按描述新建界面、改颜色/文字/布局/尺寸、批量调整、导出截图确认。
 
+如果任务不是“按明确指令改图层”，而是**新建设计、整体改版、做得好/好看、探索方向、评审视觉质量**，先加载 `figma-design` skill；本 skill 只负责操作层。
+
 ## 固定回路
 
 1. **查连接**：`figma_status`（`compact:true` 更省 token）。
@@ -22,7 +24,7 @@ description: 用自然语言读取、创建、修改、导出 Figma 设计（选
    - `figma_style apply` 默认链接 style id（内部先 loadAllPagesAsync）；传 `link:false` 可只按值写入。
    - 样式应用前先 `figma_read` 确认目标节点，避免覆盖用户手动改过的 fill。
 7. **组件集**：需要变体时用 `figma_component_set`（基于基础组件克隆 + combineAsVariants）；之后 `figma_instantiate` 用 `variant:{Size:'Large'}` 选变体。
-8. **导出**：用户要前端代码时用 `figma_export {format:'html'|'jsx'|'svg'|'json', target?, nodeIds?, outDir?}`；返回文件绝对路径，直接告诉用户路径。HTML/JSX 处理 Auto Layout→flex；VECTOR 图标用 `svg` 格式；渐变/图片填充会进 warnings。
+8. **导出**：用户要前端代码时用 `figma_export {format:'html'|'jsx'|'svg'|'json'|'tokens', target?, nodeIds?, outDir?}`；返回文件绝对路径，直接告诉用户路径。HTML/JSX 处理 Auto Layout→flex；VECTOR 图标用 `svg` 格式；渐变/图片填充会进 warnings。
 
 ## 坐标与层级
 

@@ -1,7 +1,7 @@
 {
   "name": "dsh-figma-designer",
-  "version": "0.3.2",
-  "description": "Natural-language Figma design editing for DeepSeek Harness: typed canvas operations, dry-run previews, screenshots in the loop, and a one-time paired Figma companion plugin.",
+  "version": "0.4.0",
+  "description": "Natural-language Figma design editing and design-quality workflow for DeepSeek Harness: typed canvas operations, screenshots, design-system tools, and an independent review loop.",
   "icon": "./icon.svg",
   "type": "module",
   "exports": {
@@ -19,7 +19,8 @@
     "companion/code.js",
     "companion/ui.html",
     "locale/*.json",
-    "skills/figma-designer/**"
+    "skills/figma-designer/**",
+    "skills/figma-design/**"
   ],
   "dsh": {
     "bundle": {

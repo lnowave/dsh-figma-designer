@@ -21,7 +21,7 @@ import { registerApiRoutes } from './lib/api.js'
 export const inject = ['tools']
 
 const PACKAGE_DIR = dirname(fileURLToPath(import.meta.url))
-const VERSION = '0.3.2'
+const VERSION = '0.4.0'
 
 const readService = (ctx, name) => {
   try {
@@ -43,35 +43,42 @@ function resolveHomeDir() {
   return join(homedir(), '.dsh')
 }
 
+const SKILLS = [
+  { name: 'figma-designer', dir: 'figma-designer', fallback: '用自然语言读取、创建、修改、导出 Figma 设计' },
+  { name: 'figma-design', dir: 'figma-design', fallback: '让 Figma 设计达到可交付质量：方向、视觉语言、证据与独立评审' },
+]
+
 async function registerSkill(ctx) {
   const skills = readService(ctx, 'skills')
   if (!skills || typeof skills.register !== 'function') return
-  const skillDir = join(PACKAGE_DIR, 'skills', 'figma-designer')
-  const skillPath = join(skillDir, 'SKILL.md')
-  let raw
-  try {
-    raw = await readFile(skillPath, 'utf8')
-  } catch {
-    return
-  }
-  const front = /^---\n([\s\S]*?)\n---\n/.exec(raw)
-  const description = front ? (/^description: (.+)$/m.exec(front[1])?.[1] ?? '').trim() : ''
-  const content = front ? raw.slice(front[0].length).trim() : raw
-  try {
-    ctx.effect(() => skills.register({
-      name: 'figma-designer',
-      description: description || '用自然语言读取、创建、修改 Figma 设计',
-      content,
-      source: 'bundled',
-      path: skillPath,
-      resourceBase: { kind: 'directory', path: skillDir },
-      invocation: { modelInvocable: true, userInvocable: true },
-    }), 'figma-designer: skill')
-  } catch (error) {
+  for (const skill of SKILLS) {
+    const skillDir = join(PACKAGE_DIR, 'skills', skill.dir)
+    const skillPath = join(skillDir, 'SKILL.md')
+    let raw
     try {
-      ctx.logger?.warn?.(`figma-designer: skill registration failed: ${error && error.message ? error.message : error}`)
+      raw = await readFile(skillPath, 'utf8')
     } catch {
-      /* ignore */
+      continue
+    }
+    const front = /^---\n([\s\S]*?)\n---\n/.exec(raw)
+    const description = front ? (/^description: (.+)$/m.exec(front[1])?.[1] ?? '').trim() : ''
+    const content = front ? raw.slice(front[0].length).trim() : raw
+    try {
+      ctx.effect(() => skills.register({
+        name: skill.name,
+        description: description || skill.fallback,
+        content,
+        source: 'bundled',
+        path: skillPath,
+        resourceBase: { kind: 'directory', path: skillDir },
+        invocation: { modelInvocable: true, userInvocable: true },
+      }), `figma-designer: skill ${skill.name}`)
+    } catch (error) {
+      try {
+        ctx.logger?.warn?.(`figma-designer: skill ${skill.name} registration failed: ${error && error.message ? error.message : error}`)
+      } catch {
+        /* ignore */
+      }
     }
   }
 }
