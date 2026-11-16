@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.1
+
+- 修复部分网络下 Node 媒体 API 只尝试不可达 IPv4 的问题：优先 IPv6，失败回退 IPv4。
+- `ui_media` 的搜索/下载在实际网络下恢复可用。
+
 ## 0.9.0
 
 - 新增 `ui_media`：搜索 Openverse/Wikimedia/Met/AIC/Cleveland/NASA/Poly Haven，返回许可和联系表，按 ref 下载原图。
