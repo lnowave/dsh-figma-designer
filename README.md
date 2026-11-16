@@ -141,7 +141,7 @@ node --test tests/*.test.mjs
 
 目录：`docs/V0.1-SPEC.md`（ops/协议契约）、`docs/V0.2-EXPORT.md`、`docs/V0.3-DESIGN-SYSTEM.md`、`docs/V0.3.2-COMPANION-UI.md`。
 
-发布前把 `package.json` 里的 `repository` / `homepage` / `bugs` 中的 `OWNER` 改成实际 GitHub 用户，并在 GitHub 打 tag（如 `v0.3.2`），安装时可用 `github:user/repo#v0.3.2`。
+发布/升级时在 GitHub 打 tag（如 `v0.3.2`），安装时可用 `github:lnowave/dsh-figma-designer#v0.3.2`。
 
 ## License
 
