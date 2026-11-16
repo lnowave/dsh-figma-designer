@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.1
+
+- 同一组件集的 variant 映射为 React props，生成 `<Button size="Large" state="Default" />`。
+- 每个 variant 仍保留快照函数，包装组件按 props 选择。
+- 同一 variant 多个不同内容快照时自动回退，避免错配。
+- 新增 `docs/V0.6.1-VARIANT-PROPS.md` 与测试。
+
 ## 0.6.0
 
 - `figma_export` JSX 默认 component-aware：组件实例提取为 React 组件，生成 `components.jsx`。

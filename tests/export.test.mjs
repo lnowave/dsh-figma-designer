@@ -220,6 +220,40 @@ test('component-aware JSX extracts repeated component instances and reuses ident
   assert.doesNotMatch(expanded.files['App.jsx'], /import \{/)
 })
 
+test('variant instances of one component set become React props and a wrapper component', () => {
+  const variant = (id, props, fill, x) => ({
+    id, name: `Button ${props}`, type: 'INSTANCE', visible: true, opacity: 1, x, y: 0, width: 120, height: 44,
+    component: { id: `C:${props}`, name: props, componentSetId: 'CS:1', componentSetName: 'Button / Variants' },
+    fills: [{ type: 'SOLID', color: fill, opacity: 1 }],
+    layout: { mode: 'HORIZONTAL', itemSpacing: 8, padding: { top: 8, right: 12, bottom: 8, left: 12 } },
+    children: [{
+      id: `${id};label`, name: 'Label', type: 'TEXT', visible: true, opacity: 1, x: 0, y: 0, width: 80, height: 20,
+      fills: [{ type: 'SOLID', color: '#0B1020', opacity: 1 }],
+      text: { characters: 'Save', font: { family: 'Inter', style: 'Bold' }, fontSize: 16, lineHeight: { unit: 'PIXELS', value: 20 } },
+    }],
+  })
+  const variantTree = {
+    file: 'Variants', page: { id: '0:1', name: 'Page 1' }, warnings: [], stats: { count: 9, truncated: false },
+    nodes: [{
+      id: '1:1', name: 'Screen', type: 'FRAME', visible: true, opacity: 1, x: 0, y: 0, width: 400, height: 200,
+      fills: [{ type: 'SOLID', color: '#FFFFFF', opacity: 1 }],
+      children: [
+        variant('I:1', 'Size=Large, State=Default', '#F97316', 0),
+        variant('I:2', 'Size=Small, State=Default', '#EA580C', 0),
+      ],
+    }],
+  }
+  const rendered = toJSX(variantTree, { componentAware: true })
+  assert.equal(rendered.componentCount, 2)
+  assert.match(rendered.files['App.jsx'], /import \{ Button \} from '\.\/components\.jsx'/)
+  assert.match(rendered.files['App.jsx'], /<Button size="Large" state="Default" \/>/)
+  assert.match(rendered.files['App.jsx'], /<Button size="Small" state="Default" \/>/)
+  assert.match(rendered.files['components.jsx'], /export function Button\(\{ size = "Large", state = "Default" \}\)/)
+  assert.match(rendered.files['components.jsx'], /export function SizeLargeStateDefault/)
+  assert.match(rendered.files['components.jsx'], /export function SizeSmallStateDefault/)
+  assert.match(rendered.files['components.jsx'], /if \(size === "Large" && state === "Default"\) return <SizeLargeStateDefault \/>/)
+})
+
 test('toTokens emits W3C-ish tokens.json and CSS variables from Variables/styles', () => {
   const library = {
     file: 'Design System',

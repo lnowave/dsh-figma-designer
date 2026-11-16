@@ -53,7 +53,7 @@ figma_screenshot({ nodeId })
 
 - HTML 用浏览器/`oil_ui_shoot` 在目标视口截图，和 Figma 截图并排看；
 - 不把“导出成功”当成视觉通过；
-- JSX 默认 component-aware，会把顶层组件实例提取为 React 组件；组件内部嵌套实例仍展开。token-aware 已覆盖颜色/文本样式/间距/圆角。
+- JSX 默认 component-aware，会把顶层组件实例提取为 React 组件；同组件集 variant 会映射为 React props；组件内部嵌套实例仍展开。token-aware 已覆盖颜色/文本样式/间距/圆角。
 
 ## 8. 评审
 
