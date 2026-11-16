@@ -15,7 +15,7 @@
  * The ops DSL and result shapes are defined in docs/V0.1-SPEC.md sections 2-3.
  */
 
-const PLUGIN_VERSION = '0.8.0'
+const PLUGIN_VERSION = '0.9.0'
 const DEFAULT_FONT = { family: 'Inter', style: 'Regular' }
 const MAX_OPERATION_CACHE = 50
 const EXPORT_FORMATS = ['PNG', 'SVG', 'PDF']

@@ -2,7 +2,7 @@
 
 用自然语言在 **Figma** 里读取、创建、修改设计，并导出前端代码。作为 [DeepSeek Harness](https://github.com/deepseek-ai) 的原生插件运行。
 
-> 当前版本 **v0.8.0**，测试环境：DSH `0.2.2-rc.1` + Figma Desktop。
+> 当前版本 **v0.9.0**，测试环境：DSH `0.2.2-rc.1` + Figma Desktop。
 
 ## 功能
 
@@ -14,6 +14,7 @@
 - **本地免费**：Figma 开发插件 + 本机 loopback 桥，不走官方 MCP、不消耗额度。
 - **写入安全**：配对 token、仅本机监听、`uncertain-write` 屏障。
 - **设计质量（v0.4）**：新增 `figma-design` skill，强制方向卡 → 灰度 → 视觉 → 真实截图 → 独立评审（1–10 分），避免“能画但做得平庸”。
+- **开放图库与素材（v0.9）**：`ui_media` 搜索 Openverse / Wikimedia / Met / AIC / Cleveland / NASA / Poly Haven，`ui_image` 把下载的图片放进 Figma。
 - **参考图与素材（v0.8）**：`figma_reference` 导入本地参考图做视觉分析/放参考板；`figma_asset` 把本地图片放进 Figma（新建图片框或替换 image fill）。
 - **导出完整性（v0.7）**：组件文字 overrides → `label` 等 props；VECTOR 图标导出内联 SVG；隐藏节点不导出；同 variant 不同 label 自动合并。
 - **variant props（v0.6.1）**：同一组件集的多个 variant 收敛成一个 React 组件，`<Button size="Large" state="Default" />`。
@@ -41,7 +42,7 @@
    或固定版本：
 
    ```text
-   github:lnowave/dsh-figma-designer#v0.8.0
+   github:lnowave/dsh-figma-designer#v0.9.0
    ```
 
    私有仓库需要那台电脑的 Git 凭据。
@@ -180,9 +181,9 @@ node build-client.mjs
 node --test tests/*.test.mjs
 ```
 
-目录：`docs/V0.1-SPEC.md`（ops/协议契约）、`docs/V0.2-EXPORT.md`、`docs/V0.3-DESIGN-SYSTEM.md`、`docs/V0.3.2-COMPANION-UI.md`、`docs/V0.4.0-DESIGN-QUALITY.md`、`docs/V0.4.1-AUDIT.md`、`docs/V0.4.2-COMPARE.md`、`docs/V0.5.0-TOKEN-AWARE.md`、`docs/V0.6.0-COMPONENTS.md`、`docs/V0.6.1-VARIANT-PROPS.md`、`docs/V0.7.0-EXPORT-COMPLETE.md`、`docs/V0.8.0-REFERENCE-ASSETS.md`。
+目录：`docs/V0.1-SPEC.md`（ops/协议契约）、`docs/V0.2-EXPORT.md`、`docs/V0.3-DESIGN-SYSTEM.md`、`docs/V0.3.2-COMPANION-UI.md`、`docs/V0.4.0-DESIGN-QUALITY.md`、`docs/V0.4.1-AUDIT.md`、`docs/V0.4.2-COMPARE.md`、`docs/V0.5.0-TOKEN-AWARE.md`、`docs/V0.6.0-COMPONENTS.md`、`docs/V0.6.1-VARIANT-PROPS.md`、`docs/V0.7.0-EXPORT-COMPLETE.md`、`docs/V0.8.0-REFERENCE-ASSETS.md`、`docs/V0.9.0-MEDIA.md`。
 
-发布/升级时在 GitHub 打 tag（如 `v0.8.0`），安装时可用 `github:lnowave/dsh-figma-designer#v0.8.0`。
+发布/升级时在 GitHub 打 tag（如 `v0.9.0`），安装时可用 `github:lnowave/dsh-figma-designer#v0.9.0`。
 
 ## License
 

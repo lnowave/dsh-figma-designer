@@ -15,6 +15,17 @@
 
 ## 素材
 
+### 开放图库
+
+需要真实摄影/插画/馆藏素材时，先用 `ui_media` 搜索开放图库：
+
+```js
+ui_media({ action: 'search', query: 'minimal workspace desk', source: 'all' })
+ui_media({ action: 'fetch', refs: ['C2', 'O1'], dir: 'assets/media' })
+```
+
+只把 `usable:"page"` 的候选默认放进商用页面；`reference` 只能做参考，`check` 需要人工确认。下载后把 `SOURCES.md` 一起交付。
+
 真实图片通常承担产品证据、对象识别或情绪，不要用通用渐变/几何图形替代必要图片。
 
 工作流：
@@ -31,8 +42,8 @@
 figma_reference({ path: 'references/pricing.png' })
 figma_reference({ path: 'references/pricing.png', place: true, x: 1600, y: 0 })
 
-figma_asset({ path: 'assets/hero.jpg', name: 'Hero image', x: 0, y: 0 })
-figma_asset({ path: 'assets/avatar.png', nodeId: '11:42' }) // 替换已有 image fill
+ui_image({ path: 'assets/hero.jpg', name: 'Hero image', x: 0, y: 0 })
+ui_image({ path: 'assets/avatar.png', nodeId: '11:42' }) // 替换已有 image fill
 ```
 
-支持 PNG/JPEG/GIF；`figma_asset` 默认 FIT，可传 `FILL`。工具不联网、不生成图片、不管理授权，素材由用户/设计师提供。
+支持 PNG/JPEG/GIF；`ui_image` 默认 FIT，可传 `FILL`。工具不联网、不生成图片、不管理授权，素材由用户/设计师提供。

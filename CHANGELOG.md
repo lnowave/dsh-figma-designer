@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.0
+
+- 新增 `ui_media`：搜索 Openverse/Wikimedia/Met/AIC/Cleveland/NASA/Poly Haven，返回许可和联系表，按 ref 下载原图。
+- 新增 `ui_image`：把下载的本地图片放进 Figma，或替换 image fill。
+- 下载写入 SOURCES.md，许可证分级：可商用/仅参考/需核对。
+- 新增 `docs/V0.9.0-MEDIA.md` 与媒体搜索测试。
+
 ## 0.8.0
 
 - 新增 `figma_reference`：读取本地参考图，返回尺寸/预览，可选在 Figma 创建 Reference 图片框。
