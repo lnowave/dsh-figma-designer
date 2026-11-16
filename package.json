@@ -44,10 +44,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/OWNER/dsh-figma-designer.git"
+    "url": "https://github.com/lnowave/dsh-figma-designer.git"
   },
-  "homepage": "https://github.com/OWNER/dsh-figma-designer#readme",
+  "homepage": "https://github.com/lnowave/dsh-figma-designer#readme",
   "bugs": {
-    "url": "https://github.com/OWNER/dsh-figma-designer/issues"
+    "url": "https://github.com/lnowave/dsh-figma-designer/issues"
   }
 }

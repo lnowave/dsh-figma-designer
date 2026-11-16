@@ -27,13 +27,13 @@
 2. 填入 Git 地址，例如：
 
    ```text
-   github:<your-github-user>/dsh-figma-designer
+   github:lnowave/dsh-figma-designer
    ```
 
    或固定版本：
 
    ```text
-   github:<your-github-user>/dsh-figma-designer#v0.3.2
+   github:lnowave/dsh-figma-designer#v0.3.2
    ```
 
    私有仓库需要那台电脑的 Git 凭据。
