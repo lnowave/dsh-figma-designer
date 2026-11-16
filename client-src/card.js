@@ -1,0 +1,232 @@
+/**
+ * DSH Figma Designer — Client half.
+ *
+ * Contributes one card to the Plugins page: bridge/connection status, the
+ * companion manifest path (ready to copy into Figma's "Import plugin from
+ * manifest" dialog), and a regenerate button. No canvas UI yet: v0.2 adds the
+ * sidebar panel with previews and activity.
+ */
+
+const FigmaDesignerCard = (() => {
+  const API_ROOT = '/figma-designer/api'
+  const NS = 'figma-designer'
+
+  const COPY = {
+    en: {
+      title: 'Figma designer',
+      connected: 'Connected to {count} file(s)',
+      disconnected: 'Not connected',
+      uncertain: 'Unconfirmed write',
+      bridge: 'Bridge',
+      manifest: 'Companion manifest',
+      copy: 'Copy path',
+      copied: 'Copied',
+      regenerate: 'Regenerate pairing',
+      regenerating: 'Regenerating…',
+      steps: 'One-time setup in Figma Desktop: Plugins → Development → Import plugin from manifest…, then run “DSH Figma Designer” and keep its window open.',
+      noManifest: 'Companion has not been generated yet. Click “Regenerate pairing”.',
+      files: 'Open files',
+      refresh: 'Refresh'
+    },
+    zh: {
+      title: 'Figma 设计助手',
+      connected: '已连接 {count} 个文件',
+      disconnected: '未连接',
+      uncertain: '有未确认的写入',
+      bridge: '本地桥',
+      manifest: '伴生插件 manifest',
+      copy: '复制路径',
+      copied: '已复制',
+      regenerate: '重新生成配对',
+      regenerating: '生成中…',
+      steps: '在 Figma 桌面版一次性导入：Plugins → Development → Import plugin from manifest…，然后运行「DSH Figma Designer」并保持窗口打开。',
+      noManifest: '还没生成伴生插件，点「重新生成配对」。',
+      files: '已打开文件',
+      refresh: '刷新'
+    }
+  }
+
+  let pluginCtx = null
+  let translate = (key) => COPY.zh[key] ?? key
+
+  const t = (key, replacements) => {
+    const template = translate(key)
+    if (typeof template !== 'string') return String(key)
+    if (!replacements) return template
+    return template.replace(/\{(\w+)\}/g, (match, name) => (replacements[name] === undefined ? match : String(replacements[name])))
+  }
+
+  const readService = (ctx, name) => {
+    if (!ctx) return undefined
+    try {
+      const viaGet = typeof ctx.get === 'function' ? ctx.get(name) : undefined
+      if (viaGet !== undefined) return viaGet
+    } catch {
+      /* fall through */
+    }
+    try {
+      return ctx[name]
+    } catch {
+      return undefined
+    }
+  }
+
+  async function post(path, body) {
+    const response = await fetch(`${API_ROOT}${path}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body || {}),
+    })
+    let data = null
+    try {
+      data = await response.json()
+    } catch {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    if (!response.ok || (data && data.ok === false)) throw new Error((data && data.error) || `HTTP ${response.status}`)
+    return data
+  }
+
+  const styles = {
+    card: { display: 'flex', flexDirection: 'column', gap: 10, padding: '4px 0', color: 'var(--dsw-alias-label-primary)', fontSize: 13 },
+    header: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+    title: { fontWeight: 650 },
+    badge: { fontSize: 11, padding: '1px 8px', borderRadius: 999, border: '1px solid var(--dsw-alias-border-l1)', color: 'var(--dsw-alias-label-secondary)' },
+    badgeOk: { color: 'var(--dsw-alias-state-success-primary)', borderColor: 'currentColor' },
+    badgeWarn: { color: 'var(--dsw-alias-state-warning-primary, #b45309)', borderColor: 'currentColor' },
+    row: { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
+    muted: { fontSize: 12, color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.5 },
+    path: { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 11, padding: '4px 8px', borderRadius: 6, background: 'var(--dsw-alias-bg-layer-2)', border: '1px solid var(--dsw-alias-border-l1)', wordBreak: 'break-all' },
+    button: { fontSize: 12, padding: '5px 11px', borderRadius: 7, cursor: 'pointer', border: '1px solid var(--dsw-alias-border-l1)', background: 'var(--dsw-alias-bg-layer-2)', color: 'var(--dsw-alias-label-primary)' },
+    primary: { background: 'var(--dsw-alias-brand-primary)', borderColor: 'transparent', color: 'var(--dsw-alias-bg-base)', fontWeight: 600 }
+  }
+
+  function Card(props) {
+    const [state, setState] = React.useState({ loading: true, status: null, error: null })
+    const [busy, setBusy] = React.useState(false)
+    const [notice, setNotice] = React.useState('')
+
+    const load = React.useCallback(async () => {
+      try {
+        const status = await post('/status', {})
+        setState({ loading: false, status, error: null })
+      } catch (error) {
+        setState({ loading: false, status: null, error: String(error && error.message ? error.message : error) })
+      }
+    }, [])
+
+    React.useEffect(() => {
+      let alive = true
+      load()
+      const timer = setInterval(() => { if (alive) load() }, 8000)
+      return () => { alive = false; clearInterval(timer) }
+    }, [load])
+
+    const regenerate = async () => {
+      setBusy(true)
+      setNotice('')
+      try {
+        const result = await post('/setup', {})
+        setNotice(t('copied') === '已复制' ? '已生成' : 'Generated')
+        setState((prev) => ({
+          ...prev,
+          status: prev.status && result.companion
+            ? { ...prev.status, companion: result.companion }
+            : prev.status
+        }))
+      } catch (error) {
+        setNotice(String(error && error.message ? error.message : error))
+      } finally {
+        setBusy(false)
+      }
+    }
+
+    const copyManifest = async () => {
+      const path = state.status && state.status.companion ? state.status.companion.manifestPath : ''
+      if (!path) return
+      try {
+        await navigator.clipboard.writeText(path)
+        setNotice(t('copied'))
+        setTimeout(() => setNotice(''), 2000)
+      } catch {
+        setNotice(path)
+      }
+    }
+
+    const status = state.status
+    const connections = status && status.bridge && Array.isArray(status.bridge.connections) ? status.bridge.connections : []
+    const connected = connections.length > 0
+    const uncertain = status && status.bridge && status.bridge.uncertain
+    const manifestPath = status && status.companion ? status.companion.manifestPath : ''
+
+    const badgeStyle = connected
+      ? Object.assign({}, styles.badge, styles.badgeOk)
+      : styles.badge
+    const uncertainStyle = uncertain ? Object.assign({}, styles.badge, styles.badgeWarn) : null
+
+    return h(
+      'div',
+      { style: styles.card },
+      h('div', { style: styles.header },
+        h('span', { style: styles.title }, t('title')),
+        h('span', { style: badgeStyle }, connected ? t('connected', { count: connections.length }) : t('disconnected')),
+        uncertainStyle ? h('span', { style: uncertainStyle }, t('uncertain')) : null,
+        h('div', { style: { flex: '1 1 auto' } }),
+        h('button', { type: 'button', style: styles.button, onClick: load }, t('refresh')),
+      ),
+      status && status.bridge
+        ? h('div', { style: styles.muted }, `${t('bridge')}: 127.0.0.1:${status.bridge.port}`)
+        : null,
+      connected
+        ? h('div', { style: styles.muted }, `${t('files')}: ${connections.map((item) => item.name || item.fileType || 'Figma').join(' · ')}`)
+        : null,
+      h('div', { style: styles.row },
+        h('span', { style: styles.muted }, t('manifest')),
+        manifestPath
+          ? h('span', { style: styles.path }, manifestPath)
+          : h('span', { style: styles.muted }, t('noManifest')),
+      ),
+      h('div', { style: styles.row },
+        h('button', { type: 'button', style: styles.button, disabled: !manifestPath, onClick: copyManifest }, t('copy')),
+        h('button', {
+          type: 'button',
+          style: Object.assign({}, styles.button, styles.primary),
+          disabled: busy,
+          onClick: regenerate,
+        }, busy ? t('regenerating') : t('regenerate')),
+        notice ? h('span', { style: styles.muted }, notice) : null,
+      ),
+      h('div', { style: styles.muted }, t('steps')),
+    )
+  }
+
+  function apply(ctx) {
+    pluginCtx = ctx
+    const slots = readService(ctx, 'slots')
+    if (!slots) return
+
+    const locale = readService(ctx, 'locale')
+    if (locale) {
+      try {
+        ctx.effect(() => locale.register(NS, COPY), 'figma-designer: locale')
+        if (typeof locale.bind === 'function') translate = locale.bind(NS)
+      } catch {
+        /* localization is optional */
+      }
+    }
+
+    ctx.effect(
+      () => slots.inject('plugins.item', () => slots.register({
+        name: 'plugins.item',
+        id: 'figma-designer',
+        order: 60,
+        label: () => t('title'),
+      }, Card)),
+      'figma-designer: plugins page card',
+    )
+  }
+
+  return { apply }
+})()
+
+void FigmaDesignerCard

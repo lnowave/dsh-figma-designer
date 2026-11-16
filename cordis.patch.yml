@@ -1,0 +1,5 @@
+- insert:
+    - id: figma-designer
+      name: 'dsh-figma-designer'
+      config:
+        port: 3977

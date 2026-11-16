@@ -1,0 +1,18 @@
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+
+# Dependencies and build output
+node_modules/
+coverage/
+
+# Local plugin state and generated artifacts
+.dsh/
+figma-export/
+spike/
+companion/manifest.json
+companion/README.md
+
+# Logs
+*.log

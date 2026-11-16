@@ -1,0 +1,53 @@
+{
+  "name": "dsh-figma-designer",
+  "version": "0.3.2",
+  "description": "Natural-language Figma design editing for DeepSeek Harness: typed canvas operations, dry-run previews, screenshots in the loop, and a one-time paired Figma companion plugin.",
+  "icon": "./icon.svg",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "icon.svg",
+    "lib/*.js",
+    "companion/code.js",
+    "companion/ui.html",
+    "locale/*.json",
+    "skills/figma-designer/**"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-locale"
+      ]
+    }
+  },
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "figma",
+    "design-system",
+    "codegen",
+    "figma-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OWNER/dsh-figma-designer.git"
+  },
+  "homepage": "https://github.com/OWNER/dsh-figma-designer#readme",
+  "bugs": {
+    "url": "https://github.com/OWNER/dsh-figma-designer/issues"
+  }
+}

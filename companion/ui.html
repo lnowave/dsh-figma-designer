@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>DSH Figma Designer</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: var(--figma-color-bg, #ffffff);
+    --bg-secondary: var(--figma-color-bg-secondary, #f5f5f5);
+    --text: var(--figma-color-text, #1e1e1e);
+    --text-secondary: var(--figma-color-text-secondary, #6b6b6b);
+    --border: var(--figma-color-border, #e6e6e6);
+    --brand: #2563eb;
+    --ok: #16a34a;
+    --err: #dc2626;
+    --busy: #d97706;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: flex; flex-direction: column; gap: 7px;
+    padding: 10px; background: var(--bg); color: var(--text);
+    font: 12px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+    overflow: hidden;
+  }
+  .top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .status { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+  .status span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-secondary); flex: 0 0 auto; }
+  .status[data-kind="ok"] .dot { background: var(--ok); }
+  .status[data-kind="err"] .dot { background: var(--err); }
+  .status[data-kind="busy"] .dot { background: var(--busy); }
+  .icon {
+    width: 24px; height: 24px; padding: 0; flex: 0 0 auto;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border); border-radius: 7px;
+    background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer;
+  }
+  .icon:hover { color: var(--text); }
+  .icon span { font-size: 15px; line-height: 1; display: block; }
+  .meta { display: flex; align-items: center; gap: 5px; min-width: 0; color: var(--text-secondary); font-size: 11px; }
+  .meta .file { color: var(--text); font-weight: 600; max-width: 62%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .meta .page { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sep { flex: 0 0 auto; opacity: .55; }
+  .tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 16px; }
+  .toggle {
+    display: inline-flex; align-items: center; gap: 4px;
+    border: 0; padding: 0; background: transparent; color: var(--text-secondary);
+    font: inherit; font-size: 11px; cursor: pointer;
+  }
+  .toggle:hover { color: var(--text); }
+  .chev { display: inline-block; transition: transform .12s ease; font-size: 12px; line-height: 1; }
+  body[data-logs="open"] .chev { transform: rotate(90deg); }
+  .hint { color: var(--text-secondary); font-size: 10px; opacity: .8; white-space: nowrap; }
+  .log-wrap { display: none; flex: 1 1 auto; min-height: 0; flex-direction: column; gap: 5px; }
+  body[data-logs="open"] .log-wrap { display: flex; }
+  pre.log {
+    flex: 1 1 auto; min-height: 0; margin: 0; padding: 7px 8px; overflow: auto;
+    background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 7px;
+    font: 10px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+    white-space: pre-wrap; word-break: break-word; color: var(--text-secondary);
+  }
+  .footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 10px; color: var(--text-secondary); }
+  .footer button { border: 0; padding: 0 2px; background: transparent; color: var(--text-secondary); font: inherit; cursor: pointer; }
+  .footer button:hover { color: var(--text); }
+</style>
+</head>
+<body data-logs="closed">
+  <div class="top">
+    <div class="status" id="status" data-kind="busy"><span class="dot"></span><span id="status-text">连接中…</span></div>
+    <button class="icon" id="retry" type="button" title="重新连接" aria-label="重新连接"><span aria-hidden="true">↻</span></button>
+  </div>
+
+  <div class="meta" id="meta">
+    <span class="file" id="meta-file" title="—">—</span>
+    <span class="sep">/</span>
+    <span class="page" id="meta-page" title="—">—</span>
+  </div>
+
+  <div class="tools">
+    <button class="toggle" id="logs-toggle" type="button" aria-expanded="false">
+      <span class="chev">›</span><span>日志</span>
+    </button>
+    <span class="hint">保持打开即可</span>
+  </div>
+
+  <div class="log-wrap" id="log-wrap">
+    <pre class="log" id="log"></pre>
+    <div class="footer">
+      <span id="meta-port">端口 —</span>
+      <button id="clear" type="button">清空</button>
+    </div>
+  </div>
+
+<script>
+  "use strict";
+
+  window.onerror = function (message, source, line) {
+    try {
+      var statusText = document.getElementById("status-text");
+      if (statusText) statusText.textContent = "UI 错误";
+      var status = document.getElementById("status");
+      if (status) status.dataset.kind = "err";
+      var logEl = document.getElementById("log");
+      if (logEl) logEl.textContent += "\nUI 错误：" + message + " @" + line;
+    } catch (ignored) {}
+  };
+
+  const CONFIG = __CONFIG__;
+  const VERSION = CONFIG.version || "0.3.2";
+  const WIDTH = 300;
+  const HEIGHT_CLOSED = 112;
+  const HEIGHT_OPEN = 330;
+
+  const el = {
+    status: document.getElementById("status"),
+    statusText: document.getElementById("status-text"),
+    meta: document.getElementById("meta"),
+    file: document.getElementById("meta-file"),
+    page: document.getElementById("meta-page"),
+    port: document.getElementById("meta-port"),
+    log: document.getElementById("log"),
+    retry: document.getElementById("retry"),
+    clear: document.getElementById("clear"),
+    logsToggle: document.getElementById("logs-toggle"),
+  };
+
+  const state = {
+    connectionId: null,
+    clientId: newClientId(),
+    port: null,
+    ready: null,
+    running: true,
+    polling: false,
+    logsOpen: false,
+  };
+  const pending = new Map();
+  const lines = [];
+
+  function newClientId() {
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    bytes[6] = (bytes[6] & 15) | 64;
+    bytes[8] = (bytes[8] & 63) | 128;
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    return hex.slice(0, 8) + "-" + hex.slice(8, 12) + "-" + hex.slice(12, 16) + "-" + hex.slice(16, 20) + "-" + hex.slice(20);
+  }
+
+  function log(text) {
+    lines.push(new Date().toLocaleTimeString() + "  " + text);
+    if (lines.length > 80) lines.splice(0, lines.length - 80);
+    if (el.log) {
+      el.log.textContent = lines.join("\n");
+      if (state.logsOpen) el.log.scrollTop = el.log.scrollHeight;
+    }
+  }
+
+  function setStatus(text, kind) {
+    if (!el.statusText) return;
+    el.statusText.textContent = text;
+    if (el.status) el.status.dataset.kind = kind;
+  }
+
+  function resize() {
+    try {
+      parent.postMessage({
+        pluginMessage: {
+          type: "resize",
+          width: WIDTH,
+          height: state.logsOpen ? HEIGHT_OPEN : HEIGHT_CLOSED,
+        },
+      }, "*");
+    } catch (ignored) {}
+  }
+
+  function setLogsOpen(open) {
+    state.logsOpen = open === true;
+    document.body.dataset.logs = state.logsOpen ? "open" : "closed";
+    if (el.logsToggle) el.logsToggle.setAttribute("aria-expanded", state.logsOpen ? "true" : "false");
+    if (el.log && state.logsOpen) el.log.scrollTop = el.log.scrollHeight;
+    resize();
+  }
+
+  function setMeta(file, page) {
+    const fileName = typeof file === "string" && file.length > 0 ? file : "—";
+    const pageName = typeof page === "string" && page.length > 0 ? page : "—";
+    if (el.file) {
+      el.file.textContent = fileName;
+      el.file.title = fileName;
+    }
+    if (el.page) {
+      el.page.textContent = pageName;
+      el.page.title = pageName;
+    }
+  }
+
+  function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
+
+  async function api(port, path, body, timeoutMs) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs || 8000);
+    try {
+      const response = await fetch("http://localhost:" + port + "/bridge" + path, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: "Bearer " + CONFIG.token },
+        body: JSON.stringify(body || {}),
+        signal: controller.signal,
+      });
+      let data = null;
+      try { data = await response.json(); } catch (parseError) { throw new Error("HTTP " + response.status + "（非 JSON 响应）"); }
+      if (!response.ok) {
+        const error = new Error(data && data.error ? data.error : "HTTP " + response.status);
+        error.status = response.status;
+        throw error;
+      }
+      return data;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function connect() {
+    setStatus("连接中…", "busy");
+    for (const port of CONFIG.ports) {
+      try {
+        const result = await api(port, "/connect", {
+          clientId: state.clientId,
+          name: state.ready ? state.ready.file : "Figma",
+          editorType: state.ready ? state.ready.editorType : "figma",
+          version: VERSION,
+        }, 4000);
+        if (result && result.connectionId) {
+          state.connectionId = result.connectionId;
+          state.port = port;
+          if (el.port) el.port.textContent = "端口 " + port;
+          setStatus("已连接", "ok");
+          log("已连接 · 端口 " + port);
+          return true;
+        }
+      } catch (error) {
+        log("端口 " + port + " 不可用：" + error.message);
+      }
+    }
+    if (el.port) el.port.textContent = "端口 —";
+    setStatus("未连接", "err");
+    return false;
+  }
+
+  function runInPlugin(command) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        pending.delete(command.id);
+        reject(new Error("插件执行超时（180s）"));
+      }, 180000);
+      pending.set(command.id, (result) => { clearTimeout(timer); resolve(result); });
+      parent.postMessage({ pluginMessage: { type: "command", id: command.id, command: command.command, args: command.args } }, "*");
+    });
+  }
+
+  async function pollLoop() {
+    if (state.polling) return;
+    state.polling = true;
+    while (state.running) {
+      try {
+        if (!state.connectionId && !(await connect())) {
+          await sleep(2000);
+          continue;
+        }
+        const command = await api(state.port, "/poll", { connectionId: state.connectionId }, 26000);
+        if (!command || command.idle) continue;
+        setStatus("执行中…", "busy");
+        log("← " + command.command);
+        const result = await runInPlugin(command);
+        await api(state.port, "/result", {
+          connectionId: state.connectionId,
+          id: command.id,
+          ok: result.ok === true,
+          value: result.value,
+          error: result.error,
+        }, 15000);
+        log((result.ok ? "→ ok  " : "→ 失败  ") + command.command + (result.ok ? "" : "：" + (result.error && result.error.message ? result.error.message : "")));
+        setStatus("已连接", "ok");
+      } catch (error) {
+        if (!state.running) break;
+        log("连接错误：" + error.message);
+        state.connectionId = null;
+        setStatus("断开重试…", "err");
+        await sleep(1200);
+      }
+    }
+    state.polling = false;
+  }
+
+  window.onmessage = (event) => {
+    const message = event.data && event.data.pluginMessage;
+    if (!message || typeof message !== "object") return;
+    if (message.type === "ready") {
+      state.ready = message;
+      setMeta(message.file, message.page);
+      log("插件就绪 · " + (message.editorType || "figma"));
+      return;
+    }
+    if (message.type === "result") {
+      const resolve = pending.get(message.id);
+      if (resolve) {
+        pending.delete(message.id);
+        resolve({ ok: message.ok === true, value: message.value, error: message.error });
+      }
+    }
+  };
+
+  setInterval(() => {
+    if (!state.connectionId) return;
+    api(state.port, "/heartbeat", { connectionId: state.connectionId }, 5000).catch(() => { state.connectionId = null; });
+  }, 10000);
+
+  if (el.retry) {
+    el.retry.addEventListener("click", () => {
+      state.connectionId = null;
+      log("手动重连…");
+      connect();
+    });
+  }
+  if (el.logsToggle) {
+    el.logsToggle.addEventListener("click", () => setLogsOpen(!state.logsOpen));
+  }
+  if (el.clear) {
+    el.clear.addEventListener("click", () => {
+      lines.length = 0;
+      if (el.log) el.log.textContent = "";
+    });
+  }
+
+  parent.postMessage({ pluginMessage: { type: "hello" } }, "*");
+  pollLoop();
+</script>
+</body>
+</html>

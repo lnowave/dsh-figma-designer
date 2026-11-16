@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Figma 设计助手",
+    "description": "用自然语言读取、创建、修改 Figma 设计：类型化画布操作、dryRun 预演、截图自检回路，配一个一次导入的 Figma 伴生插件。"
+  }
+}
