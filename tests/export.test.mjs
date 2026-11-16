@@ -176,6 +176,50 @@ test('token-aware HTML uses paint style, variable colors, spacing vars and text 
   assert.match(jsx.files['App.jsx'], /text-heading-xl/)
 })
 
+test('component-aware JSX extracts repeated component instances and reuses identical ones', () => {
+  const instance = (id, label, x) => ({
+    id,
+    name: `Button instance ${id}`,
+    type: 'INSTANCE',
+    visible: true,
+    opacity: 1,
+    x,
+    y: 0,
+    width: 120,
+    height: 44,
+    component: { id: 'C:1', name: 'Button' },
+    fills: [{ type: 'SOLID', color: '#F97316', opacity: 1 }],
+    layout: { mode: 'HORIZONTAL', itemSpacing: 8, padding: { top: 8, right: 12, bottom: 8, left: 12 } },
+    children: [{
+      id: `${id};label`, name: 'Label', type: 'TEXT', visible: true, opacity: 1, x: 0, y: 0, width: 80, height: 20,
+      fills: [{ type: 'SOLID', color: '#0B1020', opacity: 1 }],
+      text: { characters: label, font: { family: 'Inter', style: 'Bold' }, fontSize: 16, lineHeight: { unit: 'PIXELS', value: 20 } },
+    }],
+  })
+  const componentTree = {
+    file: 'Components', page: { id: '0:1', name: 'Page 1' }, warnings: [], stats: { count: 9, truncated: false },
+    nodes: [{
+      id: '1:1', name: 'Screen', type: 'FRAME', visible: true, opacity: 1, x: 0, y: 0, width: 400, height: 200,
+      fills: [{ type: 'SOLID', color: '#FFFFFF', opacity: 1 }],
+      layout: { mode: 'VERTICAL', itemSpacing: 16, padding: { top: 16, right: 16, bottom: 16, left: 16 } },
+      children: [instance('I:1', 'Save', 0), instance('I:2', 'Cancel', 0), instance('I:3', 'Save', 0)],
+    }],
+  }
+  const rendered = toJSX(componentTree, { componentAware: true })
+  assert.equal(rendered.componentAware, true)
+  assert.equal(rendered.componentCount, 2)
+  assert.ok(rendered.files['components.jsx'])
+  assert.match(rendered.files['App.jsx'], /import \{ Button, Button2 \} from '\.\/components\.jsx'/)
+  assert.match(rendered.files['App.jsx'], /<Button \/>/)
+  assert.match(rendered.files['App.jsx'], /<Button2 \/>/)
+  assert.match(rendered.files['components.jsx'], /export function Button/)
+  assert.match(rendered.files['components.jsx'], /export function Button2/)
+  const expanded = toJSX(componentTree, { componentAware: false })
+  assert.equal(expanded.componentAware, false)
+  assert.equal(expanded.files['components.jsx'], undefined)
+  assert.doesNotMatch(expanded.files['App.jsx'], /import \{/)
+})
+
 test('toTokens emits W3C-ish tokens.json and CSS variables from Variables/styles', () => {
   const library = {
     file: 'Design System',

@@ -21,7 +21,7 @@ import { registerApiRoutes } from './lib/api.js'
 export const inject = ['tools']
 
 const PACKAGE_DIR = dirname(fileURLToPath(import.meta.url))
-const VERSION = '0.5.0'
+const VERSION = '0.6.0'
 
 const readService = (ctx, name) => {
   try {

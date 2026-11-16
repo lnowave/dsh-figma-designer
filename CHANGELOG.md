@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0
+
+- `figma_export` JSX 默认 component-aware：组件实例提取为 React 组件，生成 `components.jsx`。
+- 相同组件视觉指纹复用；不同 override 拆成独立组件快照（尚未提升为 props）。
+- 组件外层 `component-slot` 保留父级定位/尺寸。
+- 新增 `docs/V0.6.0-COMPONENTS.md` 和 component-aware 测试。
+
 ## 0.5.0
 
 - `figma_export` 的 HTML/JSX 默认 token-aware：Variables / Paint Styles / Text Styles → CSS 变量和 `.text-*` 类。

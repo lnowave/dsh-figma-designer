@@ -2,7 +2,7 @@
 
 用自然语言在 **Figma** 里读取、创建、修改设计，并导出前端代码。作为 [DeepSeek Harness](https://github.com/deepseek-ai) 的原生插件运行。
 
-> 当前版本 **v0.5.0**，测试环境：DSH `0.2.2-rc.1` + Figma Desktop。
+> 当前版本 **v0.6.0**，测试环境：DSH `0.2.2-rc.1` + Figma Desktop。
 
 ## 功能
 
@@ -14,6 +14,7 @@
 - **本地免费**：Figma 开发插件 + 本机 loopback 桥，不走官方 MCP、不消耗额度。
 - **写入安全**：配对 token、仅本机监听、`uncertain-write` 屏障。
 - **设计质量（v0.4）**：新增 `figma-design` skill，强制方向卡 → 灰度 → 视觉 → 真实截图 → 独立评审（1–10 分），避免“能画但做得平庸”。
+- **component-aware 导出（v0.6）**：`figma_export` 的 JSX 默认把 Figma 组件实例提取为 React 组件（`components.jsx`），相同视觉指纹复用，外层 `component-slot` 保留定位。
 - **token-aware 导出（v0.5）**：`figma_export` 的 HTML/JSX 默认使用 Figma Variables / Paint Styles / Text Styles，输出 `var(--color-primary)`、`var(--space-16)` 和 `.text-*` 类。
 - **方向对比（v0.4.2）**：`figma_compare` 把 2–6 个候选截图并排成自包含 HTML，带概念、色板、特征和“选这个”。
 - **质量审计（v0.4.1）**：`figma_audit` 只读检查对比度、字号/行高、占位文案、点击区、间距网格、颜色数量、token 匹配率、裁剪等，返回 0–100 分和 nodeId 问题清单。
@@ -37,7 +38,7 @@
    或固定版本：
 
    ```text
-   github:lnowave/dsh-figma-designer#v0.5.0
+   github:lnowave/dsh-figma-designer#v0.6.0
    ```
 
    私有仓库需要那台电脑的 Git 凭据。
@@ -105,7 +106,7 @@ figma_audit({ target: 'node', nodeIds: ['11:606'] })
 | `figma_component_set` | 克隆基础组件创建 Component Set / 变体 |
 | `figma_style` | 应用/创建 Paint/Text/Effect 样式 |
 | `figma_variable` | list/create/set/bind Variables |
-| `figma_export` | 导出 html / jsx / svg / json / tokens；html/jsx 默认 token-aware |
+| `figma_export` | 导出 html / jsx / svg / json / tokens；html/jsx 默认 token-aware，jsx 默认 component-aware |
 | `figma_compare` | 2–6 个候选截图并排成对比页，带概念/色板/特征 |
 | `figma_audit` | 只读质量审计：对比度/字号/行高/占位/点击区/间距/token/裁剪，返回分数和 nodeId 问题清单 |
 
@@ -121,6 +122,7 @@ figma_export({ format: 'tokens' })
 figma_export({ format: 'html', target: 'page', outDir: 'figma-export/pricing' })
 figma_export({ format: 'jsx', target: 'node', nodeIds: ['5:2'] })
 figma_export({ format: 'html', tokenAware: false }) // 关闭 token 化
+figma_export({ format: 'jsx', componentAware: false }) // 关闭组件提取
 ```
 
 默认写到 `<工作目录>/figma-export/<节点名>-<时间戳>/`。
@@ -173,9 +175,9 @@ node build-client.mjs
 node --test tests/*.test.mjs
 ```
 
-目录：`docs/V0.1-SPEC.md`（ops/协议契约）、`docs/V0.2-EXPORT.md`、`docs/V0.3-DESIGN-SYSTEM.md`、`docs/V0.3.2-COMPANION-UI.md`、`docs/V0.4.0-DESIGN-QUALITY.md`、`docs/V0.4.1-AUDIT.md`、`docs/V0.4.2-COMPARE.md`、`docs/V0.5.0-TOKEN-AWARE.md`。
+目录：`docs/V0.1-SPEC.md`（ops/协议契约）、`docs/V0.2-EXPORT.md`、`docs/V0.3-DESIGN-SYSTEM.md`、`docs/V0.3.2-COMPANION-UI.md`、`docs/V0.4.0-DESIGN-QUALITY.md`、`docs/V0.4.1-AUDIT.md`、`docs/V0.4.2-COMPARE.md`、`docs/V0.5.0-TOKEN-AWARE.md`、`docs/V0.6.0-COMPONENTS.md`。
 
-发布/升级时在 GitHub 打 tag（如 `v0.5.0`），安装时可用 `github:lnowave/dsh-figma-designer#v0.5.0`。
+发布/升级时在 GitHub 打 tag（如 `v0.6.0`），安装时可用 `github:lnowave/dsh-figma-designer#v0.6.0`。
 
 ## License
 

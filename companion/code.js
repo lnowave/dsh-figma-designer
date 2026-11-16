@@ -15,7 +15,7 @@
  * The ops DSL and result shapes are defined in docs/V0.1-SPEC.md sections 2-3.
  */
 
-const PLUGIN_VERSION = '0.5.0'
+const PLUGIN_VERSION = '0.6.0'
 const DEFAULT_FONT = { family: 'Inter', style: 'Regular' }
 const MAX_OPERATION_CACHE = 50
 const EXPORT_FORMATS = ['PNG', 'SVG', 'PDF']
@@ -607,6 +607,7 @@ async function treeCommand(args) {
     roots = selection
   }
 
+  const mainComponents = await collectInstanceMainComponents(roots)
   const state = { count: 0, truncated: false, maxNodes: maxNodes }
   const nodes = []
   for (const root of roots) {
@@ -614,7 +615,7 @@ async function treeCommand(args) {
       state.truncated = true
       break
     }
-    nodes.push(serializeExportNode(root, state, depth, warnings))
+    nodes.push(serializeExportNode(root, state, depth, warnings, mainComponents))
   }
 
   return {
@@ -629,7 +630,35 @@ async function treeCommand(args) {
   }
 }
 
-function serializeExportNode(node, state, depthLeft, warnings) {
+async function collectInstanceMainComponents(roots) {
+  const map = new Map()
+  async function visit(node) {
+    if (!node || typeof node !== 'object') return
+    if (node.type === 'INSTANCE') {
+      try {
+        const main = typeof node.getMainComponentAsync === 'function'
+          ? await node.getMainComponentAsync()
+          : node.mainComponent
+        if (main && typeof main.id === 'string') {
+          const parent = main.parent && main.parent.type === 'COMPONENT_SET' ? main.parent : null
+          map.set(node.id, {
+            id: main.id,
+            name: main.name,
+            componentSetId: parent ? parent.id : undefined,
+            componentSetName: parent ? parent.name : undefined,
+          })
+        }
+      } catch (_ignored) {
+        /* detached, remote, or unavailable main component */
+      }
+    }
+    for (const child of Array.isArray(node.children) ? node.children : []) await visit(child)
+  }
+  for (const root of Array.isArray(roots) ? roots : []) await visit(root)
+  return map
+}
+
+function serializeExportNode(node, state, depthLeft, warnings, mainComponents) {
   state.count += 1
   const out = {
     id: node.id,
@@ -670,8 +699,12 @@ function serializeExportNode(node, state, depthLeft, warnings) {
   }
   if (node.type === 'INSTANCE') {
     try {
-      const main = node.mainComponent
-      if (main && typeof main.id === 'string') out.component = { id: main.id, name: main.name }
+      const main = mainComponents && mainComponents.get(node.id)
+      if (main && typeof main.id === 'string') out.component = main
+      else {
+        const direct = node.mainComponent
+        if (direct && typeof direct.id === 'string') out.component = { id: direct.id, name: direct.name }
+      }
     } catch (_ignored) {
       /* detached or unavailable main component */
     }
@@ -710,7 +743,7 @@ function serializeExportNode(node, state, depthLeft, warnings) {
           state.truncated = true
           break
         }
-        children.push(serializeExportNode(child, state, depthLeft - 1, warnings))
+        children.push(serializeExportNode(child, state, depthLeft - 1, warnings, mainComponents))
       }
       if (children.length > 0) out.children = children
     }
