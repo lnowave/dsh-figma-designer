@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2
+
+- 新增 `figma_compare`：2–6 个候选截图并生成自包含对比页（HTML + manifest）。
+- 对比页支持概念、色板、特征、“选这个”和“实际尺寸”。
+- 新增 `figma-design/references/compare.md` 与 `docs/V0.4.2-COMPARE.md`。
+
 ## 0.4.1
 
 - 新增 `figma_audit`：只读质量审计，返回 0–100 分和 nodeId 问题清单。

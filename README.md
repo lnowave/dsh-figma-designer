@@ -2,7 +2,7 @@
 
 用自然语言在 **Figma** 里读取、创建、修改设计，并导出前端代码。作为 [DeepSeek Harness](https://github.com/deepseek-ai) 的原生插件运行。
 
-> 当前版本 **v0.4.1**，测试环境：DSH `0.2.2-rc.1` + Figma Desktop。
+> 当前版本 **v0.4.2**，测试环境：DSH `0.2.2-rc.1` + Figma Desktop。
 
 ## 功能
 
@@ -14,6 +14,7 @@
 - **本地免费**：Figma 开发插件 + 本机 loopback 桥，不走官方 MCP、不消耗额度。
 - **写入安全**：配对 token、仅本机监听、`uncertain-write` 屏障。
 - **设计质量（v0.4）**：新增 `figma-design` skill，强制方向卡 → 灰度 → 视觉 → 真实截图 → 独立评审（1–10 分），避免“能画但做得平庸”。
+- **方向对比（v0.4.2）**：`figma_compare` 把 2–6 个候选截图并排成自包含 HTML，带概念、色板、特征和“选这个”。
 - **质量审计（v0.4.1）**：`figma_audit` 只读检查对比度、字号/行高、占位文案、点击区、间距网格、颜色数量、token 匹配率、裁剪等，返回 0–100 分和 nodeId 问题清单。
 
 ## 环境要求
@@ -35,7 +36,7 @@
    或固定版本：
 
    ```text
-   github:lnowave/dsh-figma-designer#v0.4.1
+   github:lnowave/dsh-figma-designer#v0.4.2
    ```
 
    私有仓库需要那台电脑的 Git 凭据。
@@ -104,6 +105,7 @@ figma_audit({ target: 'node', nodeIds: ['11:606'] })
 | `figma_style` | 应用/创建 Paint/Text/Effect 样式 |
 | `figma_variable` | list/create/set/bind Variables |
 | `figma_export` | 导出 html / jsx / svg / json / tokens |
+| `figma_compare` | 2–6 个候选截图并排成对比页，带概念/色板/特征 |
 | `figma_audit` | 只读质量审计：对比度/字号/行高/占位/点击区/间距/token/裁剪，返回分数和 nodeId 问题清单 |
 
 ## 导出
@@ -169,9 +171,9 @@ node build-client.mjs
 node --test tests/*.test.mjs
 ```
 
-目录：`docs/V0.1-SPEC.md`（ops/协议契约）、`docs/V0.2-EXPORT.md`、`docs/V0.3-DESIGN-SYSTEM.md`、`docs/V0.3.2-COMPANION-UI.md`、`docs/V0.4.0-DESIGN-QUALITY.md`、`docs/V0.4.1-AUDIT.md`。
+目录：`docs/V0.1-SPEC.md`（ops/协议契约）、`docs/V0.2-EXPORT.md`、`docs/V0.3-DESIGN-SYSTEM.md`、`docs/V0.3.2-COMPANION-UI.md`、`docs/V0.4.0-DESIGN-QUALITY.md`、`docs/V0.4.1-AUDIT.md`、`docs/V0.4.2-COMPARE.md`。
 
-发布/升级时在 GitHub 打 tag（如 `v0.4.1`），安装时可用 `github:lnowave/dsh-figma-designer#v0.4.1`。
+发布/升级时在 GitHub 打 tag（如 `v0.4.2`），安装时可用 `github:lnowave/dsh-figma-designer#v0.4.2`。
 
 ## License
 

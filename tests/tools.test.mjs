@@ -191,6 +191,51 @@ test('audit reads the tree and library, then returns a score without writing', a
   }
 })
 
+test('compare screenshots candidates and writes a self-contained HTML page', async () => {
+  const { bridge, homeDir } = await start()
+  const outDir = mkdtempSync(join(tmpdir(), 'figma-compare-'))
+  try {
+    const plugin = await attachPlugin(bridge, (command) => {
+      if (command === 'screenshot') {
+        return {
+          ok: true,
+          value: {
+            ok: true,
+            node: { id: '1:2', name: 'Candidate', type: 'FRAME' },
+            scale: 1,
+            image: { mimeType: 'image/png', bytes: 12, data: PNG_BASE64, width: 320, height: 640 },
+          },
+        }
+      }
+      return { ok: false, error: { code: 'unsupported', message: `unexpected ${command}` } }
+    })
+    const { call } = makeTools(bridge)
+    const result = await call('figma_compare', {
+      outDir,
+      title: 'Pricing directions',
+      candidates: [
+        { nodeId: '1:2', name: 'Bold', concept: 'Editorial' },
+        { nodeId: '1:3', name: 'Calm', concept: 'Quiet workspace' },
+      ],
+    })
+    assert.equal(result.ok, true)
+    assert.ok(result.htmlPath.endsWith('compare.html'))
+    assert.ok(result.manifestPath.endsWith('manifest.json'))
+    const html = readFileSync(result.htmlPath, 'utf8')
+    const manifest = JSON.parse(readFileSync(result.manifestPath, 'utf8'))
+    assert.match(html, /Pricing directions/)
+    assert.match(html, /Bold/)
+    assert.match(html, /data:image\/png;base64/)
+    assert.equal(manifest.candidates.length, 2)
+    assert.equal(manifest.candidates[1].name, 'Calm')
+    assert.deepEqual(plugin.commands, ['screenshot', 'screenshot'])
+  } finally {
+    await bridge.close()
+    rmSync(homeDir, { recursive: true, force: true })
+    rmSync(outDir, { recursive: true, force: true })
+  }
+})
+
 test('invalid ops are rejected locally without touching Figma', async () => {
   const { bridge, homeDir } = await start()
   try {
