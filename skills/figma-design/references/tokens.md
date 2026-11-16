@@ -81,4 +81,4 @@ figma_style({ action: 'apply', nodeId: '...', styleName: 'Heading/XL', target: '
 figma_export({ format: 'tokens' })
 ```
 
-产物是 `tokens.json` / `tokens.css` / `tokens.js`；HTML/JSX 导出目前仍展开图层，token-aware 导出在后续版本。
+产物是 `tokens.json` / `tokens.css` / `tokens.js`；HTML/JSX 导出默认 token-aware，会使用 Variables/Paint Styles/Text Styles 生成 CSS 变量与 `.text-*` 类。组件实例仍展开为图层。

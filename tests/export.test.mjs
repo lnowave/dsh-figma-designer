@@ -8,7 +8,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { describeModel, toHTML, toJSX, toJSON, toTokens } from '../lib/export.js'
+import { buildTokenContext, describeModel, toHTML, toJSX, toJSON, toTokens } from '../lib/export.js'
 
 const tree = {
   file: 'Pricing',
@@ -127,6 +127,53 @@ test('unsupported vector nodes remain as a placed box with a warning', () => {
   const { files, model } = toHTML(vectorTree)
   assert.match(files['index.html'], /class="figma-root icon-9-9"/)
   assert.ok(model.warnings.some((line) => line.includes('VECTOR')))
+})
+
+test('token-aware HTML uses paint style, variable colors, spacing vars and text styles', () => {
+  const library = {
+    variableCollections: [{ id: 'VC:1', name: 'Design Tokens', defaultModeId: 'm1', modes: [{ modeId: 'm1', name: 'Mode 1' }] }],
+    variables: [
+      { id: 'V:1', name: 'color/primary', resolvedType: 'COLOR', collectionId: 'VC:1', valuesByMode: { m1: '#F97316' }, description: '' },
+      { id: 'V:2', name: 'space/16', resolvedType: 'FLOAT', collectionId: 'VC:1', valuesByMode: { m1: 16 }, description: '' },
+    ],
+    styles: {
+      paint: [{ id: 'S:1', name: 'Brand / Primary', type: 'PAINT', paints: [{ type: 'SOLID', color: '#F97316', opacity: 1 }] }],
+      text: [{ id: 'S:2', name: 'Heading / XL', type: 'TEXT', font: { family: 'Inter', style: 'Bold' }, fontSize: 48, lineHeight: { unit: 'PIXELS', value: 56 }, letterSpacing: { unit: 'PERCENT', value: 0 } }],
+      effect: [],
+    },
+  }
+  const tokenTree = {
+    file: 'Token demo',
+    page: { id: '0:1', name: 'Page 1' },
+    stats: { count: 2, truncated: false },
+    nodes: [{
+      id: '1:1', name: 'Hero', type: 'FRAME', visible: true, opacity: 1, x: 0, y: 0, width: 400, height: 200,
+      fills: [{ type: 'SOLID', color: '#F97316', opacity: 1 }],
+      styles: { fill: 'S:1' },
+      layout: { mode: 'HORIZONTAL', itemSpacing: 16, padding: { top: 16, right: 16, bottom: 16, left: 16 } },
+      children: [{
+        id: '1:2', name: 'Headline', type: 'TEXT', visible: true, opacity: 1, x: 0, y: 0, width: 300, height: 56,
+        fills: [{ type: 'SOLID', color: '#F97316', opacity: 1 }],
+        styles: { text: 'S:2' },
+        text: { characters: 'Hello', font: { family: 'Inter', style: 'Bold' }, fontSize: 48, lineHeight: { unit: 'PIXELS', value: 56 }, letterSpacing: null },
+      }],
+    }],
+  }
+  const context = buildTokenContext(library)
+  const { files } = toHTML(tokenTree, { tokenContext: context })
+  const html = files['index.html']
+  assert.match(html, /--color-primary: #F97316;/)
+  assert.match(html, /--space-16: 16px;/)
+  assert.match(html, /background: var\(--paint-brand-primary\);/)
+  assert.match(html, /color: var\(--color-primary\);/)
+  assert.match(html, /gap: var\(--space-16\);/)
+  assert.match(html, /padding: var\(--space-16\) var\(--space-16\) var\(--space-16\) var\(--space-16\);/)
+  assert.match(html, /text-heading-xl/)
+  assert.match(html, /\.text-heading-xl \{/)
+  const jsx = toJSX(tokenTree, { tokenContext: context })
+  assert.match(jsx.files['styles.css'], /--color-primary: #F97316;/)
+  assert.match(jsx.files['styles.css'], /\.text-heading-xl \{/)
+  assert.match(jsx.files['App.jsx'], /text-heading-xl/)
 })
 
 test('toTokens emits W3C-ish tokens.json and CSS variables from Variables/styles', () => {

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+
+- `figma_export` 的 HTML/JSX 默认 token-aware：Variables / Paint Styles / Text Styles → CSS 变量和 `.text-*` 类。
+- tree 序列化增加 style ids 与 boundVariables，优先精确映射，再做颜色/间距值回退。
+- `tokenAware:false` 可关闭；无设计系统时自动回退并返回 warning。
+- 新增 `docs/V0.5.0-TOKEN-AWARE.md` 与 token-aware 测试。
+
 ## 0.4.2
 
 - 新增 `figma_compare`：2–6 个候选截图并生成自包含对比页（HTML + manifest）。

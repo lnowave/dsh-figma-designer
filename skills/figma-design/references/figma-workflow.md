@@ -49,11 +49,11 @@ figma_screenshot({ nodeId })
 
 ## 7. 导出复核
 
-`figma_export` 可以导出 HTML/JSX/SVG/JSON/tokens。导出后：
+`figma_export` 可以导出 HTML/JSX/SVG/JSON/tokens；HTML/JSX 默认 token-aware（Variables/Paint Styles/Text Styles → CSS 变量与 `.text-*` 类）。导出后：
 
 - HTML 用浏览器/`oil_ui_shoot` 在目标视口截图，和 Figma 截图并排看；
 - 不把“导出成功”当成视觉通过；
-- 组件实例/变量在导出里仍会展开，token-aware 导出是后续能力。
+- 组件实例仍会展开为图层；token-aware 已覆盖颜色/文本样式/间距/圆角。
 
 ## 8. 评审
 

@@ -15,7 +15,7 @@
  * The ops DSL and result shapes are defined in docs/V0.1-SPEC.md sections 2-3.
  */
 
-const PLUGIN_VERSION = '0.4.2'
+const PLUGIN_VERSION = '0.5.0'
 const DEFAULT_FONT = { family: 'Inter', style: 'Regular' }
 const MAX_OPERATION_CACHE = 50
 const EXPORT_FORMATS = ['PNG', 'SVG', 'PDF']
@@ -675,6 +675,29 @@ function serializeExportNode(node, state, depthLeft, warnings) {
     } catch (_ignored) {
       /* detached or unavailable main component */
     }
+  }
+
+  const styleIds = {}
+  for (const entry of [['fill', 'fillStyleId'], ['stroke', 'strokeStyleId'], ['text', 'textStyleId'], ['effect', 'effectStyleId']]) {
+    const value = node[entry[1]]
+    if (typeof value === 'string' && value.length > 0) styleIds[entry[0]] = value
+  }
+  if (Object.keys(styleIds).length > 0) out.styles = styleIds
+
+  if (node.boundVariables && typeof node.boundVariables === 'object') {
+    const bound = {}
+    for (const key of Object.keys(node.boundVariables)) {
+      const value = node.boundVariables[key]
+      if (Array.isArray(value)) {
+        const aliases = value
+          .filter((item) => item && typeof item.id === 'string')
+          .map((item) => ({ id: item.id, type: typeof item.type === 'string' ? item.type : undefined }))
+        if (aliases.length > 0) bound[key] = aliases
+      } else if (value && typeof value.id === 'string') {
+        bound[key] = { id: value.id, type: typeof value.type === 'string' ? value.type : undefined }
+      }
+    }
+    if (Object.keys(bound).length > 0) out.boundVariables = bound
   }
 
   if (Array.isArray(node.children) && node.children.length > 0) {

@@ -518,6 +518,59 @@ test('figma_export writes html, jsx, json and native svg files', async () => {
   }
 })
 
+test('figma_export tokenAware reads library and emits token references', async () => {
+  const { bridge, homeDir } = await start()
+  const outRoot = mkdtempSync(join(tmpdir(), 'figma-export-token-tools-'))
+  try {
+    await attachPlugin(bridge, (command) => {
+      if (command === 'tree') {
+        return {
+          ok: true,
+          value: {
+            ok: true,
+            file: 'Token Test',
+            page: { id: '0:1', name: 'Page 1' },
+            nodes: [{
+              id: '1:1', name: 'Hero', type: 'FRAME', visible: true, opacity: 1, x: 0, y: 0, width: 400, height: 200,
+              fills: [{ type: 'SOLID', color: '#F97316', opacity: 1 }],
+              styles: { fill: 'S:1' },
+              layout: { mode: 'HORIZONTAL', itemSpacing: 16, padding: { top: 16, right: 16, bottom: 16, left: 16 } },
+              children: [],
+            }],
+            stats: { count: 1, truncated: false },
+            warnings: [],
+          },
+        }
+      }
+      if (command === 'library') {
+        return {
+          ok: true,
+          value: {
+            ok: true,
+            variables: [{ id: 'V:1', name: 'space/16', resolvedType: 'FLOAT', valuesByMode: { m1: 16 } }],
+            variableCollections: [{ id: 'VC:1', defaultModeId: 'm1' }],
+            styles: { paint: [{ id: 'S:1', name: 'Brand / Primary', paints: [{ type: 'SOLID', color: '#F97316', opacity: 1 }] }], text: [], effect: [] },
+          },
+        }
+      }
+      return { ok: true, value: { ok: true } }
+    })
+    const { call } = makeTools(bridge)
+    const outDir = join(outRoot, 'html')
+    const result = await call('figma_export', { format: 'html', outDir, tokenAware: true })
+    assert.equal(result.ok, true)
+    assert.equal(result.tokenAware, true)
+    const html = readFileSync(join(outDir, 'index.html'), 'utf8')
+    assert.match(html, /--paint-brand-primary: #F97316;/)
+    assert.match(html, /background: var\(--paint-brand-primary\);/)
+    assert.match(html, /gap: var\(--space-16\);/)
+  } finally {
+    await bridge.close()
+    rmSync(homeDir, { recursive: true, force: true })
+    rmSync(outRoot, { recursive: true, force: true })
+  }
+})
+
 test('figma_export validates format and node target without calling Figma', async () => {
   const { bridge, homeDir } = await start()
   try {
