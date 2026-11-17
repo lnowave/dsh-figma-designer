@@ -102,14 +102,14 @@ test('no connection yields actionable guidance, and multiple files require a sel
     const none = await bridge.call({ command: 'read', sessionId: 's' })
     assert.equal(none.ok, false)
     assert.equal(none.error.code, 'not-connected')
-    assert.match(none.error.message, /figma_setup|伴生插件/)
+    assert.match(none.error.message, /figma_designer_setup|伴生插件/)
 
     const plugin = asPlugin(bridge)
     const first = await plugin.connect({ clientId: 'c1', name: 'File A' })
     const second = await plugin.connect({ clientId: 'c2', name: 'File B' })
     const ambiguous = await bridge.call({ command: 'read', sessionId: 's' })
     assert.equal(ambiguous.ok, false)
-    assert.match(ambiguous.error.message, /figma_select/)
+    assert.match(ambiguous.error.message, /figma_designer_select/)
 
     const bound = bridge.bind('s', second.data.connectionId)
     assert.equal(bound.ok, true)

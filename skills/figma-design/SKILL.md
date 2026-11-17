@@ -17,7 +17,7 @@ description: 让 Figma 设计达到可交付质量：先定方向与约束，再
 
 ### 1. 事实与范围
 
-先写清：用户是谁、产品/品牌、核心任务、真实内容、目标设备与主视口、现有设计系统、参考与限制。能读 Figma 就先 `figma_status` + `figma_library` + 当前选区/页面截图；不要凭印象。
+先写清：用户是谁、产品/品牌、核心任务、真实内容、目标设备与主视口、现有设计系统、参考与限制。能读 Figma 就先 `figma_designer_status` + `figma_designer_library` + 当前选区/页面截图；不要凭印象。
 
 只问会改变核心方向且推断不出来的问题；其余自己决定并写明假设。
 
@@ -41,11 +41,11 @@ description: 让 Figma 设计达到可交付质量：先定方向与约束，再
 
 先只做灰阶线框：内容层级、对象、主动作、状态。确认主角和最重信息；结构不通不靠颜色/字体/主视觉遮。
 
-在 Figma 里可以先建灰阶 frame，`figma_screenshot` 后自己看；用户确认方向后再上视觉。用户说“你定/直接做”时不停顿，但仍按这个顺序。
+在 Figma 里可以先建灰阶 frame，`figma_designer_screenshot` 后自己看；用户确认方向后再上视觉。用户说“你定/直接做”时不停顿，但仍按这个顺序。
 
 ### 4. 设计系统与视觉
 
-- 已有文件：优先复用 `figma_library` 里的组件/变量/样式；没有就用 `figma_variable`/`figma_style` 建最小集合，不要每个节点硬编码。
+- 已有文件：优先复用 `figma_designer_library` 里的组件/变量/样式；没有就用 `figma_designer_variable`/`figma_designer_style` 建最小集合，不要每个节点硬编码。
 - 视觉语言、字体角色、中文排版、色彩分工、控件/图标规则见 `references/visual-language.md`。
 - 字号/间距/圆角/色彩建议先成 token 再使用；配方见 `references/tokens.md`。
 - 真实内容优先：不要 lorem ipsum、“标题/描述/示例数据”；中文按真实字形检查换行、行高、数字单位。
@@ -53,8 +53,8 @@ description: 让 Figma 设计达到可交付质量：先定方向与约束，再
 
 ### 5. 真实画面证据
 
-- 用 `figma_audit` 先跑一遍客观检查（对比度/字号/行高/占位/点击区/间距/token/裁剪），按 `nodeId` 修掉 error，再处理高影响 warn。详见 `references/audit.md`。
-- 用 `figma_screenshot` 在目标视口看当前屏；不要只看代码或缩略图。
+- 用 `figma_designer_audit` 先跑一遍客观检查（对比度/字号/行高/占位/点击区/间距/token/裁剪），按 `nodeId` 修掉 error，再处理高影响 warn。详见 `references/audit.md`。
+- 用 `figma_designer_screenshot` 在目标视口看当前屏；不要只看代码或缩略图。
 - 至少检查：目标视口 100%、关键区域 200%、首屏缩到 480px 宽的三秒测试。
 - 有文本节点时检查：字号、行高、中文断行、截断/溢出、长内容；有状态/交互时检查操作后状态。
 - 截图保存成功不等于看过；交付前必须真的读图。

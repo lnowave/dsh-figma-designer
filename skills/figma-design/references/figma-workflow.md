@@ -5,10 +5,10 @@
 ## 1. 读现状
 
 ```text
-figma_status({ compact: true })
-figma_library({ kind: 'all' })
-figma_read({ target: 'selection' })   // 或 target:'page'
-figma_screenshot({ nodeId })
+figma_designer_status({ compact: true })
+figma_designer_library({ kind: 'all' })
+figma_designer_read({ target: 'selection' })   // 或 target:'page'
+figma_designer_screenshot({ nodeId })
 ```
 
 先看当前文件、已有设计系统、选区真实画面。不要凭文件名或历史记忆判断。
@@ -19,25 +19,25 @@ figma_screenshot({ nodeId })
 
 ## 3. 灰度骨架
 
-用 `figma_apply` 建灰阶 frame；只用黑白灰和结构，不先上品牌色/主视觉。可以：
+用 `figma_designer_apply` 建灰阶 frame；只用黑白灰和结构，不先上品牌色/主视觉。可以：
 
 - 只用 `#FFFFFF/#F5F5F5/#E5E5E5/#9CA3AF/#111827` 这类灰阶；
 - 先做代表页，不做全套；
-- `figma_screenshot` 后检查层级、主角、主动作和内容密度；
+- `figma_designer_screenshot` 后检查层级、主角、主动作和内容密度；
 - 结构不行就改骨架，不用颜色/阴影救。
 
 ## 4. 设计系统
 
-- 已有组件/变量/样式：`figma_library` 查 id，`figma_instantiate` 用组件，`figma_style` 应用样式，`figma_variable` 绑定 token；
+- 已有组件/变量/样式：`figma_designer_library` 查 id，`figma_designer_instantiate` 用组件，`figma_designer_style` 应用样式，`figma_designer_variable` 绑定 token；
 - 没有：按 `tokens.md` 建最小集合；变量命名用领域/角色（`color/primary`、`space/16`），不要 `blue1`、`size2`；
-- 组件集用 `figma_component_set`；实例 overrides 只改内容/尺寸/状态，不重画组件。
+- 组件集用 `figma_designer_component_set`；实例 overrides 只改内容/尺寸/状态，不重画组件。
 
 ## 5. 视觉实现
 
 - 先做代表页面/核心流程，再铺其他页面。
-- 每次 `figma_apply` 小批次（约 20 节点/4KB 内）；长 JSON 分多次，避免 `MALFORMED_RESPONSE`。
-- 改动前 `dryRun:true` 看计划；改完 `figma_screenshot` 看真实画面。
-- 不用 `figma_apply` 重画已有组件；先查 `figma_library`。
+- 每次 `figma_designer_apply` 小批次（约 20 节点/4KB 内）；长 JSON 分多次，避免 `MALFORMED_RESPONSE`。
+- 改动前 `dryRun:true` 看计划；改完 `figma_designer_screenshot` 看真实画面。
+- 不用 `figma_designer_apply` 重画已有组件；先查 `figma_designer_library`。
 
 ## 6. 证据
 
@@ -49,7 +49,7 @@ figma_screenshot({ nodeId })
 
 ## 7. 导出复核
 
-`figma_export` 可以导出 HTML/JSX/SVG/JSON/tokens；HTML/JSX 默认 token-aware（Variables/Paint Styles/Text Styles → CSS 变量与 `.text-*` 类）。导出后：
+`figma_designer_export` 可以导出 HTML/JSX/SVG/JSON/tokens；HTML/JSX 默认 token-aware（Variables/Paint Styles/Text Styles → CSS 变量与 `.text-*` 类）。导出后：
 
 - HTML 用浏览器/`oil_ui_shoot` 在目标视口截图，和 Figma 截图并排看；
 - 不把“导出成功”当成视觉通过；

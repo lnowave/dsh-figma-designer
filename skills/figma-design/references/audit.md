@@ -1,4 +1,4 @@
-# 质量审计（figma_audit）
+# 质量审计（figma_designer_audit）
 
 客观检查层。它不能替代独立视觉评审，但能在评审前清掉大部分“肉眼能测出来”的问题。
 
@@ -12,9 +12,9 @@
 ## 怎么用
 
 ```text
-figma_audit({ target: 'selection' })
-figma_audit({ target: 'page', maxNodes: 800 })
-figma_audit({ target: 'node', nodeIds: ['11:606'] })
+figma_designer_audit({ target: 'selection' })
+figma_designer_audit({ target: 'page', maxNodes: 800 })
+figma_designer_audit({ target: 'node', nodeIds: ['11:606'] })
 ```
 
 默认读当前选区；只读，不改画布。输出 `score`、`issues`（含 `nodeId`/`severity`/`suggestion`）和 `metrics`。

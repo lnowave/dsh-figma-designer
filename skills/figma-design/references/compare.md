@@ -1,4 +1,4 @@
-# 方向对比（figma_compare）
+# 方向对比（figma_designer_compare）
 
 把 2–6 个候选 Figma 节点截图并生成自包含对比页 `compare.html` + `manifest.json`。只读，不修改 Figma。
 
@@ -13,7 +13,7 @@
 ## 怎么用
 
 ```text
-figma_compare({
+figma_designer_compare({
   title: '登录页 — 三个方向',
   candidates: [
     { nodeId: '11:606', name: 'Acme workspace', concept: '安静、编辑式、左对齐', palette: ['#0B1020', '#F97316'], traits: ['单列', '编辑式'] },

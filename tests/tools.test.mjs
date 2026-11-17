@@ -111,7 +111,7 @@ test('status works without a connection and guides setup', async () => {
   const { bridge, homeDir } = await start()
   try {
     const { call } = makeTools(bridge)
-    const status = await call('figma_status')
+    const status = await call('figma_designer_status')
     assert.equal(status.ok, true)
     assert.equal(status.backend, 'local')
     assert.equal(status.files.length, 0)
@@ -127,7 +127,7 @@ test('setup returns the manifest path and steps', async () => {
   const { bridge, homeDir } = await start()
   try {
     const { call } = makeTools(bridge)
-    const result = await call('figma_setup')
+    const result = await call('figma_designer_setup')
     assert.equal(result.ok, true)
     assert.equal(result.manifestPath, '/tmp/companion/manifest.json')
     assert.ok(Array.isArray(result.steps) && result.steps.length >= 3)
@@ -142,7 +142,7 @@ test('read dispatches to the plugin and returns its tree', async () => {
   try {
     const plugin = await attachPlugin(bridge, () => fakeReadValue)
     const { call } = makeTools(bridge)
-    const result = await call('figma_read', { depth: 2 })
+    const result = await call('figma_designer_read', { depth: 2 })
     assert.equal(result.ok, true)
     assert.equal(result.value.nodes[0].id, '1:2')
     assert.deepEqual(plugin.commands, ['read'])
@@ -178,7 +178,7 @@ test('audit reads the tree and library, then returns a score without writing', a
       return { ok: false, error: { code: 'unsupported', message: `unexpected ${command}` } }
     })
     const { call } = makeTools(bridge)
-    const result = await call('figma_audit', { target: 'selection' })
+    const result = await call('figma_designer_audit', { target: 'selection' })
     assert.equal(result.ok, true)
     assert.equal(typeof result.score, 'number')
     assert.ok(Array.isArray(result.issues))
@@ -210,7 +210,7 @@ test('compare screenshots candidates and writes a self-contained HTML page', asy
       return { ok: false, error: { code: 'unsupported', message: `unexpected ${command}` } }
     })
     const { call } = makeTools(bridge)
-    const result = await call('figma_compare', {
+    const result = await call('figma_designer_compare', {
       outDir,
       title: 'Pricing directions',
       candidates: [
@@ -247,12 +247,12 @@ test('reference imports a local image for analysis and can place a reference boa
       return { ok: false, error: { code: 'unsupported', message: `unexpected ${command}` } }
     })
     const { call } = makeTools(bridge)
-    const preview = await call('figma_reference', { path: pngPath })
+    const preview = await call('figma_designer_reference', { path: pngPath })
     assert.equal(preview.ok, true)
     assert.equal(preview.width, 1)
     assert.equal(preview.height, 1)
     assert.ok(preview.preview && preview.preview.attachment)
-    const placed = await call('figma_reference', { path: pngPath, place: true, x: 1200, y: 0 })
+    const placed = await call('figma_designer_reference', { path: pngPath, place: true, x: 1200, y: 0 })
     assert.equal(placed.ok, true)
     assert.equal(placed.placed.id, '1:9')
     assert.deepEqual(plugin.commands, ['image'])
@@ -274,7 +274,7 @@ test('asset places a local image as a new Figma image frame', async () => {
       return { ok: false, error: { code: 'unsupported', message: `unexpected ${command}` } }
     })
     const { call } = makeTools(bridge)
-    const result = await call('figma_asset', { path: pngPath, name: 'Hero image', x: 0, y: 0 })
+    const result = await call('figma_designer_asset', { path: pngPath, name: 'Hero image', x: 0, y: 0 })
     assert.equal(result.ok, true)
     assert.equal(result.node.id, '1:10')
     assert.ok(result.preview && result.preview.attachment)
@@ -291,7 +291,7 @@ test('invalid ops are rejected locally without touching Figma', async () => {
   try {
     const plugin = await attachPlugin(bridge, () => ({ ok: true, value: {} }))
     const { call } = makeTools(bridge)
-    const result = await call('figma_apply', { ops: [{ op: 'explode' }] })
+    const result = await call('figma_designer_apply', { ops: [{ op: 'explode' }] })
     assert.equal(result.ok, false)
     assert.equal(result.error.code, 'invalid-op')
     assert.ok(result.error.errors.length >= 1)
@@ -307,7 +307,7 @@ test('dry-run sends no write and reports a plan', async () => {
   try {
     const plugin = await attachPlugin(bridge, (command) => ({ ok: true, value: { ok: true, dryRun: true, plan: { willCreate: 2 }, applied: [] } }))
     const { call } = makeTools(bridge)
-    const result = await call('figma_apply', {
+    const result = await call('figma_designer_apply', {
       dryRun: true,
       ops: [
         { op: 'create', type: 'frame', width: 320, height: 200, children: [{ op: 'create', type: 'text', text: { characters: 'hi' } }] },
@@ -338,20 +338,20 @@ test('a write applies, and a failed write sets the uncertain barrier refused by 
     const { call } = makeTools(bridge)
     const ops = [{ op: 'create', type: 'rect', width: 100, height: 100 }]
 
-    const ok = await call('figma_apply', { ops })
+    const ok = await call('figma_designer_apply', { ops })
     assert.equal(ok.ok, true)
     assert.equal(ok.value.applied[0].nodeId, '1:3')
 
     failWrites = true
-    const failed = await call('figma_apply', { ops })
+    const failed = await call('figma_designer_apply', { ops })
     assert.equal(failed.ok, false)
     assert.equal(failed.error.code, 'figma-error')
 
-    const status = await call('figma_status', { compact: true })
+    const status = await call('figma_designer_status', { compact: true })
     assert.equal(status.uncertain, true)
     assert.equal(status.bound.uncertain, true)
 
-    const refused = await call('figma_apply', { ops })
+    const refused = await call('figma_designer_apply', { ops })
     assert.equal(refused.ok, false)
     assert.equal(refused.error.code, 'uncertain-write')
     assert.deepEqual(plugin.commands, ['apply', 'apply'])
@@ -373,7 +373,7 @@ test('an op-level failure inside a successful envelope surfaces as a tool failur
       },
     }))
     const { call } = makeTools(bridge)
-    const result = await call('figma_apply', {
+    const result = await call('figma_designer_apply', {
       ops: [
         { op: 'create', type: 'rect', width: 100, height: 100 },
         { op: 'update', nodeId: '9:9', patch: { fill: '#000000' } },
@@ -402,9 +402,9 @@ test('screenshot persists the PNG and returns a durable image attachment', async
       },
     }))
     const { registry, call } = makeTools(bridge)
-    const value = await call('figma_screenshot', { nodeId: '1:2', scale: 2 })
+    const value = await call('figma_designer_screenshot', { nodeId: '1:2', scale: 2 })
     assert.equal(value.ok, true)
-    const content = registry.get('figma_screenshot').output.render({}, value)
+    const content = registry.get('figma_designer_screenshot').output.render({}, value)
     assert.equal(content[0].type, 'text')
     const summary = JSON.parse(content[0].text)
     assert.equal(summary.width, 640)
@@ -434,10 +434,10 @@ test('screenshot without an attachment store fails safely instead of emitting ra
       },
     }))
     const { registry, call } = makeTools(bridge, { attachments: null })
-    const value = await call('figma_screenshot', { nodeId: '1:2' })
+    const value = await call('figma_designer_screenshot', { nodeId: '1:2' })
     assert.equal(value.ok, false)
     assert.equal(value.error.code, 'image-unsupported')
-    const content = registry.get('figma_screenshot').output.render({}, value)
+    const content = registry.get('figma_designer_screenshot').output.render({}, value)
     assert.equal(content.length, 1)
     assert.equal(content[0].type, 'text')
     assert.equal(content.some((block) => block.type === 'image'), false)
@@ -451,10 +451,10 @@ test('apply without a connection reports not-connected and the setup hint', asyn
   const { bridge, homeDir } = await start()
   try {
     const { call } = makeTools(bridge)
-    const result = await call('figma_apply', { ops: [{ op: 'create', type: 'rect', width: 10, height: 10 }] })
+    const result = await call('figma_designer_apply', { ops: [{ op: 'create', type: 'rect', width: 10, height: 10 }] })
     assert.equal(result.ok, false)
     assert.equal(result.error.code, 'not-connected')
-    assert.match(result.error.message, /figma_setup/)
+    assert.match(result.error.message, /figma_designer_setup/)
   } finally {
     await bridge.close()
     rmSync(homeDir, { recursive: true, force: true })
@@ -469,16 +469,16 @@ test('select binds an explicit file when several are connected', async () => {
     const secondConnect = await post(base, '/bridge/connect', { clientId: 'second', name: 'Second File', editorType: 'figma', version: '0.1.0' }, bridge.token)
     const { call } = makeTools(bridge)
 
-    const list = await call('figma_select', {})
+    const list = await call('figma_designer_select', {})
     assert.equal(list.ok, true)
     assert.equal(list.files.length, 2)
     assert.equal(list.needsSelection, true)
 
-    const selected = await call('figma_select', { fileName: 'Second File' })
+    const selected = await call('figma_designer_select', { fileName: 'Second File' })
     assert.equal(selected.ok, true)
     assert.equal(selected.bound.connectionId, secondConnect.data.connectionId)
 
-    const status = await call('figma_status', { compact: true })
+    const status = await call('figma_designer_status', { compact: true })
     assert.equal(status.bound.connectionId, secondConnect.data.connectionId)
 
     await first.stop()
@@ -489,7 +489,7 @@ test('select binds an explicit file when several are connected', async () => {
   }
 })
 
-test('figma_export writes html, jsx, json and native svg files', async () => {
+test('figma_designer_export writes html, jsx, json and native svg files', async () => {
   const { bridge, homeDir } = await start()
   const outRoot = mkdtempSync(join(tmpdir(), 'figma-export-tools-'))
   try {
@@ -539,25 +539,25 @@ test('figma_export writes html, jsx, json and native svg files', async () => {
     const { call } = makeTools(bridge)
 
     const htmlDir = join(outRoot, 'html')
-    const html = await call('figma_export', { format: 'html', outDir: htmlDir })
+    const html = await call('figma_designer_export', { format: 'html', outDir: htmlDir })
     assert.equal(html.ok, true)
     assert.equal(html.format, 'html')
     assert.equal(html.files[0].name, 'index.html')
     assert.match(readFileSync(join(htmlDir, 'index.html'), 'utf8'), /class="figma-root pricing-desktop-1-2"/)
 
     const jsxDir = join(outRoot, 'jsx')
-    const jsx = await call('figma_export', { format: 'jsx', outDir: jsxDir })
+    const jsx = await call('figma_designer_export', { format: 'jsx', outDir: jsxDir })
     assert.equal(jsx.ok, true)
     assert.deepEqual(jsx.files.map((file) => file.name).sort(), ['App.jsx', 'styles.css'])
     assert.match(readFileSync(join(jsxDir, 'App.jsx'), 'utf8'), /export default function App/)
 
     const jsonDir = join(outRoot, 'json')
-    const json = await call('figma_export', { format: 'json', outDir: jsonDir })
+    const json = await call('figma_designer_export', { format: 'json', outDir: jsonDir })
     assert.equal(json.ok, true)
     assert.equal(JSON.parse(readFileSync(join(jsonDir, 'design.json'), 'utf8')).generatedBy, 'dsh-figma-designer')
 
     const svgDir = join(outRoot, 'svg')
-    const svg = await call('figma_export', { format: 'svg', outDir: svgDir })
+    const svg = await call('figma_designer_export', { format: 'svg', outDir: svgDir })
     assert.equal(svg.ok, true)
     assert.equal(svg.files.length, 1)
     assert.equal(readFileSync(svg.files[0].path, 'utf8'), '<svg></svg>')
@@ -568,7 +568,7 @@ test('figma_export writes html, jsx, json and native svg files', async () => {
   }
 })
 
-test('figma_export tokenAware reads library and emits token references', async () => {
+test('figma_designer_export tokenAware reads library and emits token references', async () => {
   const { bridge, homeDir } = await start()
   const outRoot = mkdtempSync(join(tmpdir(), 'figma-export-token-tools-'))
   try {
@@ -607,7 +607,7 @@ test('figma_export tokenAware reads library and emits token references', async (
     })
     const { call } = makeTools(bridge)
     const outDir = join(outRoot, 'html')
-    const result = await call('figma_export', { format: 'html', outDir, tokenAware: true })
+    const result = await call('figma_designer_export', { format: 'html', outDir, tokenAware: true })
     assert.equal(result.ok, true)
     assert.equal(result.tokenAware, true)
     const html = readFileSync(join(outDir, 'index.html'), 'utf8')
@@ -621,14 +621,14 @@ test('figma_export tokenAware reads library and emits token references', async (
   }
 })
 
-test('figma_export validates format and node target without calling Figma', async () => {
+test('figma_designer_export validates format and node target without calling Figma', async () => {
   const { bridge, homeDir } = await start()
   try {
     const { call } = makeTools(bridge)
-    const badFormat = await call('figma_export', { format: 'pdf' })
+    const badFormat = await call('figma_designer_export', { format: 'pdf' })
     assert.equal(badFormat.ok, false)
     assert.equal(badFormat.error.code, 'invalid-format')
-    const noNode = await call('figma_export', { format: 'html', target: 'node' })
+    const noNode = await call('figma_designer_export', { format: 'html', target: 'node' })
     assert.equal(noNode.ok, false)
     assert.equal(noNode.error.code, 'invalid-target')
   } finally {
@@ -673,20 +673,20 @@ test('design-system tools dispatch library / instantiate / style / variable comm
     })
     const { call } = makeTools(bridge)
 
-    const library = await call('figma_library', { kind: 'components' })
+    const library = await call('figma_designer_library', { kind: 'components' })
     assert.equal(library.ok, true)
     assert.equal(library.components[0].name, 'Button / Primary')
     assert.equal(library.componentSets.length, 0)
 
-    const instance = await call('figma_instantiate', { componentName: 'Button', parentId: '5:2', x: 10, y: 20, overrides: [{ nodeName: 'Label', text: 'Go' }] })
+    const instance = await call('figma_designer_instantiate', { componentName: 'Button', parentId: '5:2', x: 10, y: 20, overrides: [{ nodeName: 'Label', text: 'Go' }] })
     assert.equal(instance.ok, true)
     assert.equal(instance.value.node.id, '3:1')
 
-    const style = await call('figma_style', { action: 'apply', nodeId: '3:1', styleName: 'Brand/Primary', target: 'fill' })
+    const style = await call('figma_designer_style', { action: 'apply', nodeId: '3:1', styleName: 'Brand/Primary', target: 'fill' })
     assert.equal(style.ok, true)
     assert.equal(style.value.style.id, 'S:1')
 
-    const variable = await call('figma_variable', { action: 'bind', variableId: 'V:1', nodeId: '3:1', field: 'fill' })
+    const variable = await call('figma_designer_variable', { action: 'bind', variableId: 'V:1', nodeId: '3:1', field: 'fill' })
     assert.equal(variable.ok, true)
 
     assert.deepEqual(seen.map((item) => item.command), ['library', 'instantiate', 'styles', 'variables'])
@@ -701,13 +701,13 @@ test('design-system tools reject missing required arguments before dispatch', as
   const { bridge, homeDir } = await start()
   try {
     const { call } = makeTools(bridge)
-    const instance = await call('figma_instantiate', {})
+    const instance = await call('figma_designer_instantiate', {})
     assert.equal(instance.ok, false)
     assert.equal(instance.error.code, 'invalid-args')
-    const style = await call('figma_style', { action: 'create', kind: 'paint' })
+    const style = await call('figma_designer_style', { action: 'create', kind: 'paint' })
     assert.equal(style.ok, false)
     assert.equal(style.error.code, 'invalid-args')
-    const variable = await call('figma_variable', { action: 'bind', variableId: 'V:1' })
+    const variable = await call('figma_designer_variable', { action: 'bind', variableId: 'V:1' })
     assert.equal(variable.ok, false)
     assert.equal(variable.error.code, 'invalid-args')
   } finally {
@@ -716,7 +716,7 @@ test('design-system tools reject missing required arguments before dispatch', as
   }
 })
 
-test('figma_export tokens writes tokens.json/css/js from the library', async () => {
+test('figma_designer_export tokens writes tokens.json/css/js from the library', async () => {
   const { bridge, homeDir } = await start()
   const outDir = mkdtempSync(join(tmpdir(), 'figma-tokens-'))
   try {
@@ -741,7 +741,7 @@ test('figma_export tokens writes tokens.json/css/js from the library', async () 
       return { ok: true, value: { ok: true } }
     })
     const { call } = makeTools(bridge)
-    const result = await call('figma_export', { format: 'tokens', outDir })
+    const result = await call('figma_designer_export', { format: 'tokens', outDir })
     assert.equal(result.ok, true)
     assert.equal(result.format, 'tokens')
     assert.deepEqual(result.files.map((file) => file.name).sort(), ['tokens.css', 'tokens.js', 'tokens.json'])
@@ -755,7 +755,7 @@ test('figma_export tokens writes tokens.json/css/js from the library', async () 
   }
 })
 
-test('figma_component_set creates variants through the companion', async () => {
+test('figma_designer_component_set creates variants through the companion', async () => {
   const { bridge, homeDir } = await start()
   try {
     let received = null
@@ -767,7 +767,7 @@ test('figma_component_set creates variants through the companion', async () => {
       return { ok: true, value: { ok: true } }
     })
     const { call } = makeTools(bridge)
-    const result = await call('figma_component_set', {
+    const result = await call('figma_designer_component_set', {
       name: 'Button Variants',
       baseComponentName: 'Button / Primary',
       variants: [{ properties: { Size: 'Small' }, width: 160 }, { properties: { Size: 'Large' }, width: 280 }],
@@ -775,7 +775,7 @@ test('figma_component_set creates variants through the companion', async () => {
     assert.equal(result.ok, true)
     assert.equal(result.value.componentSet.id, '2:9')
     assert.equal(received.variants.length, 2)
-    const missing = await call('figma_component_set', { variants: [] })
+    const missing = await call('figma_designer_component_set', { variants: [] })
     assert.equal(missing.ok, false)
     assert.equal(missing.error.code, 'invalid-args')
   } finally {

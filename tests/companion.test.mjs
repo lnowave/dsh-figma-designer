@@ -598,7 +598,7 @@ test('read：选区摘要、depth 展开、maxNodes 截断、隐藏过滤、文�
   assert.deepEqual(textSummary.fills, [{ type: 'SOLID', color: '#FF0000', opacity: 1 }])
   assert.equal(textSummary.children, 0)
 
-  // no target -> selection (matches the figma_read tool default)
+  // no target -> selection (matches the figma_designer_read tool default)
   const defaultRead = await h.command('read', {})
   assert.equal(defaultRead.value.target, 'selection')
   assert.equal(defaultRead.value.nodes.length, 1)

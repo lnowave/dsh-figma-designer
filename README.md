@@ -4,20 +4,20 @@
 
 - **类型化操作，不执行脚本**：模型产出 `create/update/move/clone/group/delete/select` 等声明式 ops，Host 先校验再下发。
 - **dryRun 预演**：先看"将创建/修改/删除什么"，再决定执行。
-- **截图回路**：`figma_screenshot` 把选区渲成 PNG 直接回给模型，改完能自检。
-- **前端代码导出（v0.2）**：`figma_export` 把选区/页面导出成自包含 HTML、React（App.jsx + styles.css）、原生 SVG 或节点 JSON，自动处理 Auto Layout → flexbox、文字/颜色/圆角/阴影。
-- **设计系统（v0.3）**：`figma_library` 读组件/样式/Variables；`figma_instantiate` 复用组件实例；`figma_style` 应用/创建样式；`figma_variable` 建 token 并绑定填充、间距等。
+- **截图回路**：`figma_designer_screenshot` 把选区渲成 PNG 直接回给模型，改完能自检。
+- **前端代码导出（v0.2）**：`figma_designer_export` 把选区/页面导出成自包含 HTML、React（App.jsx + styles.css）、原生 SVG 或节点 JSON，自动处理 Auto Layout → flexbox、文字/颜色/圆角/阴影。
+- **设计系统（v0.3）**：`figma_designer_library` 读组件/样式/Variables；`figma_designer_instantiate` 复用组件实例；`figma_designer_style` 应用/创建样式；`figma_designer_variable` 建 token 并绑定填充、间距等。
 - **本地免费**：Figma 开发插件 + 本机 loopback 桥，不走官方 MCP、不消耗额度。
 - **写入安全**：配对 token、仅本机监听、破坏性写入有 `uncertain-write` 屏障（超时/断线后必须先读再写）。
 - **设计质量（v0.4）**：`figma-design` skill 强制先定方向、灰度优先、真实截图验收和 1–10 分独立评审，避免“能画但做得平庸”。
-- **方向对比（v0.4.2）**：`figma_compare` 把 2–6 个候选截图并排成自包含 HTML，带概念、色板、特征和“选这个”。
-- **component-aware 导出（v0.6）**：`figma_export` 的 JSX 默认把 Figma 组件实例提取为 React 组件（`components.jsx`），相同视觉指纹复用，实例外层保留布局。
+- **方向对比（v0.4.2）**：`figma_designer_compare` 把 2–6 个候选截图并排成自包含 HTML，带概念、色板、特征和“选这个”。
+- **component-aware 导出（v0.6）**：`figma_designer_export` 的 JSX 默认把 Figma 组件实例提取为 React 组件（`components.jsx`），相同视觉指纹复用，实例外层保留布局。
 - **variant props（v0.6.1）**：同一组件集的多个 variant 收敛成一个 React 组件，`<Button size="Large" state="Default" />`。
 - **导出完整性（v0.7）**：组件文字 overrides → props；VECTOR 图标导出为内联 SVG；隐藏节点不导出；同 variant 不同 label 自动合并。
-- **token-aware 导出（v0.5）**：`figma_export` 的 HTML/JSX 默认使用 Figma Variables / Paint Styles / Text Styles，输出 `var(--color-primary)`、`.text-heading-xl` 和 `var(--space-16)`。
-- **质量审计（v0.4.1）**：`figma_audit` 只读检查对比度、字号/行高、占位文案、点击区、间距网格、颜色数量、token 匹配率、裁剪等，返回 0–100 分和可定位到 nodeId 的问题清单。
+- **token-aware 导出（v0.5）**：`figma_designer_export` 的 HTML/JSX 默认使用 Figma Variables / Paint Styles / Text Styles，输出 `var(--color-primary)`、`.text-heading-xl` 和 `var(--space-16)`。
+- **质量审计（v0.4.1）**：`figma_designer_audit` 只读检查对比度、字号/行高、占位文案、点击区、间距网格、颜色数量、token 匹配率、裁剪等，返回 0–100 分和可定位到 nodeId 的问题清单。
 
-> 当前版本 **v0.9.1**：十八个工具 + 配对伴生插件 + 设置卡片 + HTML/JSX/SVG/JSON/tokens 导出 + 组件/样式/Variables 设计系统 + **figma-design 设计质量工作流**（方向卡、灰度、真实截图、独立评审 + `figma_audit` 客观审计 + `figma_compare` 多方向对比）。
+> 当前版本 **v0.9.1**：十八个工具 + 配对伴生插件 + 设置卡片 + HTML/JSX/SVG/JSON/tokens 导出 + 组件/样式/Variables 设计系统 + **figma-design 设计质量工作流**（方向卡、灰度、真实截图、独立评审 + `figma_designer_audit` 客观审计 + `figma_designer_compare` 多方向对比）。
 
 ## 安装
 
@@ -36,10 +36,10 @@ node build-client.mjs
 
 ## 一次性配置（Figma 桌面版）
 
-1. 点卡片上的 **重新生成配对**（或让 DSH 调用 `figma_setup`），复制 manifest 路径。
+1. 点卡片上的 **重新生成配对**（或让 DSH 调用 `figma_designer_setup`），复制 manifest 路径。
 2. Figma 桌面版：**Plugins → Development → Import plugin from manifest…**，选择该路径。
 3. 打开目标文件，运行 **Plugins → Development → DSH Figma Designer**，保持窗口打开。
-4. 回到 DSH 调用 `figma_status`，看到「已连接」即可。
+4. 回到 DSH 调用 `figma_designer_status`，看到「已连接」即可。
 
 > 升级插件后重新生成配对会原地更新目录，只需关闭并重跑 Figma 插件，**不用重新导入**。
 
@@ -47,39 +47,39 @@ node build-client.mjs
 
 | 工具 | 作用 |
 |---|---|
-| `figma_status` | 连接状态、文件列表、绑定目标、是否有未确认写入；未连接时给 setup 指引 |
-| `figma_setup` | 生成/刷新伴生插件，返回 manifest 路径与三步说明 |
-| `figma_select` | 多文件时选择目标文件（单文件自动绑定） |
-| `figma_read` | 读选区/页面/节点树（depth、maxNodes、隐藏节点控制） |
-| `figma_screenshot` | 选区/节点导出 PNG 并回图 |
-| `figma_apply` | 类型化 ops 批量写入（dryRun / atomic / operationId） |
-| `figma_library` | 读组件/组件集、Paint/Text/Effect 样式、Variables |
-| `figma_instantiate` | 创建组件 Instance，支持 variant 与文字/填充等 overrides |
-| `figma_component_set` | 克隆基础组件创建 Component Set / 变体 |
-| `figma_style` | 应用/创建 Paint/Text/Effect 样式 |
-| `figma_variable` | list/create/set/bind Variables（设计 token） |
-| `figma_export` | 导出 html / jsx / svg / json / tokens；html/jsx 默认 token-aware，jsx 默认 component-aware |
-| `figma_compare` | 2–6 个候选截图并排成对比页，带概念/色板/特征 |
-| `figma_reference` | 读取本地参考图，返回真实尺寸/预览，可选放 Reference 图片框 |
-| `figma_asset` | 把本地 PNG/JPEG/GIF 放进 Figma，或替换节点 image fill |
-| `ui_media` | 搜索开放图库、返回许可和联系表，按 ref 下载原图 |
-| `ui_image` | 把本地图片放进 Figma（新建图片框或替换 image fill） |
-| `figma_audit` | 只读质量审计：对比度/字号/行高/占位文案/点击区/间距/token/裁剪，返回 0–100 分和问题清单 |
+| `figma_designer_status` | 连接状态、文件列表、绑定目标、是否有未确认写入；未连接时给 setup 指引 |
+| `figma_designer_setup` | 生成/刷新伴生插件，返回 manifest 路径与三步说明 |
+| `figma_designer_select` | 多文件时选择目标文件（单文件自动绑定） |
+| `figma_designer_read` | 读选区/页面/节点树（depth、maxNodes、隐藏节点控制） |
+| `figma_designer_screenshot` | 选区/节点导出 PNG 并回图 |
+| `figma_designer_apply` | 类型化 ops 批量写入（dryRun / atomic / operationId） |
+| `figma_designer_library` | 读组件/组件集、Paint/Text/Effect 样式、Variables |
+| `figma_designer_instantiate` | 创建组件 Instance，支持 variant 与文字/填充等 overrides |
+| `figma_designer_component_set` | 克隆基础组件创建 Component Set / 变体 |
+| `figma_designer_style` | 应用/创建 Paint/Text/Effect 样式 |
+| `figma_designer_variable` | list/create/set/bind Variables（设计 token） |
+| `figma_designer_export` | 导出 html / jsx / svg / json / tokens；html/jsx 默认 token-aware，jsx 默认 component-aware |
+| `figma_designer_compare` | 2–6 个候选截图并排成对比页，带概念/色板/特征 |
+| `figma_designer_reference` | 读取本地参考图，返回真实尺寸/预览，可选放 Reference 图片框 |
+| `figma_designer_asset` | 把本地 PNG/JPEG/GIF 放进 Figma，或替换节点 image fill |
+| `figma_designer_media` | 搜索开放图库、返回许可和联系表，按 ref 下载原图 |
+| `figma_designer_image` | 把本地图片放进 Figma（新建图片框或替换 image fill） |
+| `figma_designer_audit` | 只读质量审计：对比度/字号/行高/占位文案/点击区/间距/token/裁剪，返回 0–100 分和问题清单 |
 
 ## 导出前端代码
 
 ```js
 // 导出当前选中的节点
-figma_export({ format: 'html' })
-figma_export({ format: 'jsx' })
-figma_export({ format: 'svg' })
-figma_export({ format: 'json' })
+figma_designer_export({ format: 'html' })
+figma_designer_export({ format: 'jsx' })
+figma_designer_export({ format: 'svg' })
+figma_designer_export({ format: 'json' })
 
 // 导出整页 / 指定节点 / 指定目录
-figma_export({ format: 'html', target: 'page', outDir: 'figma-export/pricing' })
-figma_export({ format: 'jsx', target: 'node', nodeIds: ['5:2'] })
-figma_export({ format: 'html', tokenAware: false }) // 关闭 token 化
-figma_export({ format: 'jsx', componentAware: false }) // 关闭组件提取
+figma_designer_export({ format: 'html', target: 'page', outDir: 'figma-export/pricing' })
+figma_designer_export({ format: 'jsx', target: 'node', nodeIds: ['5:2'] })
+figma_designer_export({ format: 'html', tokenAware: false }) // 关闭 token 化
+figma_designer_export({ format: 'jsx', componentAware: false }) // 关闭组件提取
 ```
 
 默认写到 `<工作目录>/figma-export/<节点名>-<时间戳>/`。
@@ -113,7 +113,7 @@ figma_export({ format: 'jsx', componentAware: false }) // 关闭组件提取
 - 颜色：`#RRGGBB` / `#RRGGBBAA`；`fill:null` 清空。
 - `layout`：`{mode:'HORIZONTAL'|'VERTICAL', itemSpacing, padding, primaryAxisAlign, counterAxisAlign}`。
 - `text`：`{characters, font:{family,style}, fontSize, align, lineHeight, letterSpacing, textAutoResize}`。
-- 一次 `apply` 只做用户要求的改动；改完 `figma_screenshot` 自检。
+- 一次 `apply` 只做用户要求的改动；改完 `figma_designer_screenshot` 自检。
 
 ## 架构
 
@@ -136,7 +136,7 @@ Figma Desktop
 
 - 桥只监听 `127.0.0.1`，校验 Host/Host 头、Origin（Figma 插件 iframe 为 `null`）、`application/json`（强制 CORS 预检）和配对 token；token 只写在伴生插件 `ui.html` 与 `~/.dsh/figma-designer/pair.json`（0600）。
 - 不执行任意脚本；所有写入走 ops 校验。
-- 写入无事务：`atomic:true` 是尽力回滚；超时/断线后返回 `uncertain-write`，必须先 `figma_read` 核查。
+- 写入无事务：`atomic:true` 是尽力回滚；超时/断线后返回 `uncertain-write`，必须先 `figma_designer_read` 核查。
 - 只支持 **Figma 桌面版**（开发插件需要桌面版导入）。
 
 ## 已知限制（v0.3）
@@ -144,7 +144,7 @@ Figma Desktop
 - 跨页、复杂组件属性/text/instance-swap、变量别名与多 mode 的高级操作仍有限。
 - HTML/JSX 导出暂不支持渐变、图片填充和 VECTOR 图标（VECTOR 用 SVG 格式导出）；动效未实现。
 - 导出的 HTML/JSX 是静态还原，尚未把组件/token 抽象保留到代码（后续版本）。
-- 异步样式链接需要先加载所有页面（已在 companion 内处理）；`link:false` 可只按值写入。应用前先 `figma_read` 确认。
+- 异步样式链接需要先加载所有页面（已在 companion 内处理）；`link:false` 可只按值写入。应用前先 `figma_designer_read` 确认。
 - 不接官方 Figma MCP（保留为 v0.4 可选只读后端）。
 - 伴生插件需手动导入一次；窗口关闭即断线。
 

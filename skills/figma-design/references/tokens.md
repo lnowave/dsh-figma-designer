@@ -1,6 +1,6 @@
 # 设计 token 配方
 
-先用 `figma_library` 看已有变量/样式；已有就沿用，不另造一套。没有时才建最小集合。
+先用 `figma_designer_library` 看已有变量/样式；已有就沿用，不另造一套。没有时才建最小集合。
 
 ## 字号梯度
 
@@ -65,20 +65,20 @@
 ## 在 Figma 里落地
 
 ```text
-figma_library({ kind: 'variables' })
-figma_variable({ action: 'create', name: 'color/primary', resolvedType: 'COLOR', value: '#F97316' })
-figma_variable({ action: 'create', name: 'space/16', resolvedType: 'FLOAT', value: 16 })
-figma_variable({ action: 'bind', name: 'color/primary', nodeId: '...', field: 'fill' })
-figma_variable({ action: 'bind', name: 'space/16', nodeId: '...', field: 'itemSpacing' })
+figma_designer_library({ kind: 'variables' })
+figma_designer_variable({ action: 'create', name: 'color/primary', resolvedType: 'COLOR', value: '#F97316' })
+figma_designer_variable({ action: 'create', name: 'space/16', resolvedType: 'FLOAT', value: 16 })
+figma_designer_variable({ action: 'bind', name: 'color/primary', nodeId: '...', field: 'fill' })
+figma_designer_variable({ action: 'bind', name: 'space/16', nodeId: '...', field: 'itemSpacing' })
 
-figma_style({ action: 'create', kind: 'text', name: 'Heading/XL', font: { family: 'Inter', style: 'Bold' }, fontSize: 48 })
-figma_style({ action: 'apply', nodeId: '...', styleName: 'Heading/XL', target: 'text' })
+figma_designer_style({ action: 'create', kind: 'text', name: 'Heading/XL', font: { family: 'Inter', style: 'Bold' }, fontSize: 48 })
+figma_designer_style({ action: 'apply', nodeId: '...', styleName: 'Heading/XL', target: 'text' })
 ```
 
 导出 tokens：
 
 ```text
-figma_export({ format: 'tokens' })
+figma_designer_export({ format: 'tokens' })
 ```
 
 产物是 `tokens.json` / `tokens.css` / `tokens.js`；HTML/JSX 导出默认 token-aware，会使用 Variables/Paint Styles/Text Styles 生成 CSS 变量与 `.text-*` 类。组件实例仍展开为图层。
