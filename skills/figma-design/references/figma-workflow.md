@@ -35,15 +35,15 @@ figma_designer_screenshot({ nodeId })
 ## 5. 视觉实现
 
 - 先做代表页面/核心流程，再铺其他页面。
-- 每次 `figma_designer_apply` 小批次（约 20 节点/4KB 内）；长 JSON 分多次，避免 `MALFORMED_RESPONSE`。
-- 改动前 `dryRun:true` 看计划；改完 `figma_designer_screenshot` 看真实画面。
+- 一个区块/整页尽量一次 `figma_designer_apply` 提交（预算约 80 节点/20KB）；超过这个量再按区块拆，拆得越碎往返越多。
+- `dryRun` 只用于批量删除/移动/重构这类破坏性操作；普通新建和修改直接执行，改完 `figma_designer_screenshot` 看真实画面。
 - 不用 `figma_designer_apply` 重画已有组件；先查 `figma_designer_library`。
 
 ## 6. 证据
 
-- 目标视口 100% 截图；
-- 关键区域 200% 截图（可 `scale:2` + 节点 id）；
-- 480px 三秒测试：导出截图后缩放看，或在 Figma 里缩到 480px 宽看；
+- 每轮改动截 1 张：大画板 `scale:0.5–0.75`，小画板用 1；
+- 只有怀疑字体/对齐/裁切时才加 200% 局部（`scale:2` + 节点 id）；
+- 480px 三秒测试只在有响应式要求时做；
 - 长页面按需看整页/滚动状态；有交互时看操作后状态；
 - 只有真实图片才算证据；空图/加载中/透明首屏不算。
 

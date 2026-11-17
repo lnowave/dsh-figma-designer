@@ -111,10 +111,14 @@ test('status works without a connection and guides setup', async () => {
   const { bridge, homeDir } = await start()
   try {
     const { call } = makeTools(bridge)
-    const status = await call('figma_designer_status')
-    assert.equal(status.ok, true)
+    const compact = await call('figma_designer_status')
+    assert.equal(compact.ok, true)
+    assert.equal(compact.connected, false)
+    assert.equal(compact.files.length, 0)
+    assert.equal(compact.manifestPath, '/tmp/companion/manifest.json')
+
+    const status = await call('figma_designer_status', { compact: false })
     assert.equal(status.backend, 'local')
-    assert.equal(status.files.length, 0)
     assert.equal(status.setup.manifestPath, '/tmp/companion/manifest.json')
     assert.ok(status.instructions.some((line) => line.includes('Import plugin from manifest')))
   } finally {
